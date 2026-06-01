@@ -1,9 +1,28 @@
 # docker-compose.yml
-# Convenience file for local development / testing.
-# The ghost-mcp server uses stdio as its MCP transport, so there is no
-# HTTP port to expose. The container is normally launched by an MCP host
-# (e.g. Claude Desktop) via `docker run`; this compose file lets you
-# build and smoke-test the image easily.
+#
+# SERVER OPERATOR sets GHOST_API_URL here — this locks the container to your
+# specific Ghost instance. MCP clients (e.g. Claude Desktop) cannot override it.
+#
+# MCP CLIENTS provide at connection time (not here):
+#   - GHOST_ADMIN_API_KEY   (required)
+#   - GHOST_API_VERSION     (optional, defaults to v5.0)
+#
+# Usage example for an MCP client (e.g. Claude Desktop):
+#   {
+#     "mcpServers": {
+#       "ghost": {
+#         "command": "docker",
+#         "args": ["run", "-i", "--rm",
+#                  "-e", "GHOST_ADMIN_API_KEY",
+#                  "-e", "GHOST_API_VERSION",
+#                  "ghcr.io/laul0/ghost-mcp:latest"],
+#         "env": {
+#           "GHOST_ADMIN_API_KEY": "your-id:your-secret",
+#           "GHOST_API_VERSION": "v5.0"
+#         }
+#       }
+#     }
+#   }
 
 services:
   ghost-mcp:
@@ -12,11 +31,11 @@ services:
       dockerfile: Dockerfile
     image: ghost-mcp:latest
     environment:
-      # Required – override these values or use a .env file
+      # ── Server-side only (locked by the operator) ──────────────────────────
+      # Restricts this container to your Ghost instance.
+      # GHOST_ADMIN_API_KEY and GHOST_API_VERSION are NOT defined here —
+      # they must be supplied by the MCP client at connection time.
       GHOST_API_URL: ${GHOST_API_URL}
-      GHOST_ADMIN_API_KEY: ${GHOST_ADMIN_API_KEY}
-      # Optional – defaults to v5.0 inside the app
-      GHOST_API_VERSION: ${GHOST_API_VERSION:-v5.0}
     # Keep stdin open so the MCP stdio transport works correctly
     stdin_open: true
     tty: false
