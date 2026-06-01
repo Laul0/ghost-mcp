@@ -13,7 +13,7 @@
 // ---------------------------------------------------------------------------
 
 export const GHOST_API_URL: string = process.env.GHOST_API_URL as string;
-export const GHOST_ADMIN_API_KEY: string = process.env.GHOST_ADMIN_API_KEY as string;
+export const GHOST_ADMIN_API_KEY: string = process.env.GHOST_ADMIN_API_KEY || '';
 export const GHOST_API_VERSION: string = process.env.GHOST_API_VERSION as string || 'v5.0';
 
 // GHOST_API_URL must be set by the server operator — it is not client-facing.
@@ -22,8 +22,9 @@ if (!GHOST_API_URL) {
     process.exit(1);
 }
 
-// GHOST_ADMIN_API_KEY is provided by the MCP client.
+// GHOST_ADMIN_API_KEY may be injected by an MCP client (stdio mode) or set on
+// the host/container (HTTP mode). Keep startup alive so HTTP deployments can
+// boot and expose an endpoint even when no key is configured yet.
 if (!GHOST_ADMIN_API_KEY) {
-    console.error("Error: GHOST_ADMIN_API_KEY environment variable is not set.");
-    process.exit(1);
+    console.warn("Warning: GHOST_ADMIN_API_KEY is not set. Ghost API operations will fail until a valid key is provided.");
 }

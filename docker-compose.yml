@@ -1,11 +1,14 @@
 # docker-compose.yml
 #
-# SERVER OPERATOR sets GHOST_API_URL here — this locks the container to your
-# specific Ghost instance. MCP clients (e.g. Claude Desktop) cannot override it.
+# SERVER OPERATOR sets GHOST_API_URL here to lock the container to one
+# Ghost instance.
 #
-# MCP CLIENTS provide at connection time (not here):
-#   - GHOST_ADMIN_API_KEY   (required)
-#   - GHOST_API_VERSION     (optional, defaults to v5.0)
+# This compose file uses the published GHCR image by default.
+# Use a local Docker build only for development/testing.
+#
+# MCP CLIENTS provide at connection time (not in compose):
+#   - GHOST_ADMIN_API_KEY (required)
+#   - GHOST_API_VERSION (optional, defaults to v5.0)
 #
 # Usage example for an MCP client (e.g. Claude Desktop):
 #   {
@@ -26,16 +29,14 @@
 
 services:
   ghost-mcp:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: ghost-mcp:latest
+    image: ghcr.io/laul0/ghost-mcp:latest
     environment:
-      # ── Server-side only (locked by the operator) ──────────────────────────
-      # Restricts this container to your Ghost instance.
-      # GHOST_ADMIN_API_KEY and GHOST_API_VERSION are NOT defined here —
-      # they must be supplied by the MCP client at connection time.
-      GHOST_API_URL: ${GHOST_API_URL}
+      # Example only. Replace locally; do not commit real infrastructure values.
+      - GHOST_API_URL=https://your-ghost-site.example
+      - MCP_TRANSPORT=http
+      - MCP_PORT=3000
+    ports:
+      - "3000:3000"
     # Keep stdin open so the MCP stdio transport works correctly
     stdin_open: true
     tty: false
