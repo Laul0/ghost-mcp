@@ -66,6 +66,26 @@ For local development, you can build your own image instead:
 docker build -t ghost-mcp:local .
 ```
 
+### Original npx usage (still supported)
+
+To use this with MCP clients (for example Claude Desktop), add this to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "ghost-mcp": {
+      "command": "npx",
+      "args": ["-y", "@fanyangmeng/ghost-mcp"],
+      "env": {
+        "GHOST_API_URL": "https://yourblog.com",
+        "GHOST_ADMIN_API_KEY": "your_admin_api_key",
+        "GHOST_API_VERSION": "v5.0"
+      }
+    }
+  }
+}
+```
+
 ---
 
 ## Available Resources
