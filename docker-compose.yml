@@ -1,0 +1,23 @@
+# docker-compose.yml
+# Convenience file for local development / testing.
+# The ghost-mcp server uses stdio as its MCP transport, so there is no
+# HTTP port to expose. The container is normally launched by an MCP host
+# (e.g. Claude Desktop) via `docker run`; this compose file lets you
+# build and smoke-test the image easily.
+
+services:
+  ghost-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ghost-mcp:latest
+    environment:
+      # Required – override these values or use a .env file
+      GHOST_API_URL: ${GHOST_API_URL}
+      GHOST_ADMIN_API_KEY: ${GHOST_ADMIN_API_KEY}
+      # Optional – defaults to v5.0 inside the app
+      GHOST_API_VERSION: ${GHOST_API_VERSION:-v5.0}
+    # Keep stdin open so the MCP stdio transport works correctly
+    stdin_open: true
+    tty: false
+    restart: unless-stopped
