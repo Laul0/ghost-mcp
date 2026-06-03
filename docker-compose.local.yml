@@ -1,0 +1,15 @@
+services:
+  ghost-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ghost-mcp:local
+    environment:
+      - GHOST_API_URL=http://fluent-ui.local
+      - MCP_TRANSPORT=http
+      - MCP_PORT=3000
+    ports:
+      - "3000:3000"
+    stdin_open: true
+    tty: false
+    restart: unless-stopped

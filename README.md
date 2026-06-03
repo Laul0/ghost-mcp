@@ -23,6 +23,12 @@ docker compose pull
 docker compose up -d
 ```
 
+If you want to test a local build before pushing an image, use [docker-compose.local.yml](docker-compose.local.yml) instead:
+
+```bash
+docker compose -f docker-compose.local.yml up --build
+```
+
 HTTP endpoint (default): `http://<your-host>:3000/`
 
 Health check: `http://<your-host>:3000/health`
@@ -85,6 +91,86 @@ To use this with MCP clients (for example Claude Desktop), add this to your `cla
   }
 }
 ```
+
+### Using HTTP Docker MCP clients
+
+When running this server over HTTP (`MCP_TRANSPORT=http`), configure your client to connect to:
+
+- Local machine: `http://localhost:3000/`
+- Remote with reverse proxy/TLS: `https://your-domain.example/`
+
+> [!IMPORTANT]
+> For HTTP mode, keep `GHOST_ADMIN_API_KEY` on the server/container environment.
+> The client only needs the MCP URL.
+
+#### Claude (Claude Code / Claude Desktop)
+
+Claude Code (CLI):
+
+Add the server:
+
+```bash
+claude mcp add --transport http ghost-mcp http://localhost:3000/
+```
+
+Verify:
+
+```bash
+claude mcp list
+claude mcp get ghost-mcp
+```
+
+Claude Desktop (HTTP-capable versions):
+
+```json
+{
+  "mcpServers": {
+    "ghost-mcp": {
+      "type": "http",
+      "url": "http://localhost:3000/"
+    }
+  }
+}
+```
+
+If your Claude Desktop version only supports stdio/local MCP entries, use the `npx` configuration shown above.
+
+#### GitHub Copilot CLI
+
+Option A (interactive in Copilot CLI):
+
+```text
+/mcp add
+```
+
+Then choose:
+- Server Name: `ghost-mcp`
+- Server Type: `HTTP`
+- URL: `http://localhost:3000/`
+- Tools: `*` (or restrict to specific tool names)
+
+Option B (command line):
+
+```bash
+copilot mcp add ghost-mcp --type http --url http://localhost:3000/ --tools "*"
+```
+
+#### VS Code (Copilot Chat Agent mode)
+
+Create or edit `.vscode/mcp.json`:
+
+```json
+{
+  "servers": {
+    "ghost-mcp": {
+      "type": "http",
+      "url": "http://localhost:3000/"
+    }
+  }
+}
+```
+
+Then in Copilot Chat, switch to Agent mode and enable tools for `ghost-mcp`.
 
 ---
 
