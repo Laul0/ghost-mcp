@@ -1,23 +1,38 @@
 import GhostAdminAPI from '@tryghost/admin-api';
 import { GHOST_API_URL, GHOST_ADMIN_API_KEY, GHOST_API_VERSION } from './config';
+import { getGhostRequestContext } from './requestContext';
 
-let cachedClient: any = null;
+const clientsByCredential = new Map<string, any>();
 
-function getGhostApiClient(): any {
-    if (!cachedClient) {
-        if (!GHOST_ADMIN_API_KEY) {
-            throw new Error('GHOST_ADMIN_API_KEY is not set. Configure it in the server/container environment before using Ghost tools.');
-        }
+function getRuntimeCredentials(): { key: string; version: string } {
+    const context = getGhostRequestContext();
 
-        // Initialize lazily so the MCP server can boot even when no key is set yet.
-        cachedClient = new GhostAdminAPI({
-            url: GHOST_API_URL,
-            key: GHOST_ADMIN_API_KEY,
-            version: GHOST_API_VERSION
-        });
+    const key = context?.adminApiKey || GHOST_ADMIN_API_KEY;
+    const version = context?.apiVersion || GHOST_API_VERSION;
+
+    if (!key) {
+        throw new Error(
+            'GHOST_ADMIN_API_KEY is missing. For HTTP transport, send x-ghost-admin-api-key in MCP client headers. For stdio transport, set GHOST_ADMIN_API_KEY in the client env.'
+        );
     }
 
-    return cachedClient;
+    return { key, version };
+}
+
+function getGhostApiClient(): any {
+    const { key, version } = getRuntimeCredentials();
+    const cacheKey = `${version}::${key}`;
+
+    if (!clientsByCredential.has(cacheKey)) {
+        // Initialize lazily so the MCP server can boot even when no key is set yet.
+        clientsByCredential.set(cacheKey, new GhostAdminAPI({
+            url: GHOST_API_URL,
+            key,
+            version
+        }));
+    }
+
+    return clientsByCredential.get(cacheKey);
 }
 
 export const ghostApiClient = new Proxy({} as any, {

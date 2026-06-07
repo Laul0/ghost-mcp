@@ -5,11 +5,21 @@ services:
       dockerfile: Dockerfile
     image: ghost-mcp:local
     environment:
-      - GHOST_API_URL=http://fluent-ui.local
+      - GHOST_API_URL=http://ghost:2368
       - MCP_TRANSPORT=http
       - MCP_PORT=3000
+    extra_hosts:
+      - "fluent-ui.local:host-gateway"
+      - "host.docker.internal:host-gateway"
+    networks:
+      - default
+      - gfui_ghost-proxy
     ports:
       - "3000:3000"
     stdin_open: true
     tty: false
     restart: unless-stopped
+
+networks:
+  gfui_ghost-proxy:
+    external: true

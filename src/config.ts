@@ -22,9 +22,11 @@ if (!GHOST_API_URL) {
     process.exit(1);
 }
 
-// GHOST_ADMIN_API_KEY may be injected by an MCP client (stdio mode) or set on
-// the host/container (HTTP mode). Keep startup alive so HTTP deployments can
-// boot and expose an endpoint even when no key is configured yet.
+// GHOST_ADMIN_API_KEY is optional at process startup.
+// - stdio mode: typically provided in client env.
+// - HTTP mode: typically provided per request via x-ghost-admin-api-key header.
+// This env var remains as a fallback/default credential when a request does not
+// provide a key.
 if (!GHOST_ADMIN_API_KEY) {
-    console.warn("Warning: GHOST_ADMIN_API_KEY is not set. Ghost API operations will fail until a valid key is provided.");
+    console.warn("Warning: GHOST_ADMIN_API_KEY fallback is not set. Ghost API operations will require per-client credentials.");
 }

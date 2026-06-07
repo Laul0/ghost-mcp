@@ -52,7 +52,27 @@ services:
 ```
 
 > [!NOTE]
-> If you use this as an MCP server over HTTP, set `GHOST_ADMIN_API_KEY` on the server/container environment.
+> In HTTP mode, keep `GHOST_API_URL` on the server/container.
+> Each MCP client should provide its own Ghost key so access remains user-scoped.
+
+## MCP Configuration (Who Sets What)
+
+Use this model to avoid shared permissions across users.
+
+| Item | Set by | Where |
+|---|---|---|
+| `GHOST_API_URL` | Server operator | Docker/container env (`docker-compose.yml`) |
+| `GHOST_ADMIN_API_KEY` for HTTP | Each MCP client user | MCP client config as `Authorization: Bearer <ghost-admin-key>` |
+| `GHOST_API_VERSION` for HTTP | Each MCP client user (optional) | MCP client config as HTTP header `x-ghost-api-version` |
+| `GHOST_ADMIN_API_KEY` for stdio/npx | Each MCP client user | MCP client env in local/stdio config |
+| `GHOST_API_URL` for stdio/npx | Each MCP client user | MCP client env in local/stdio config |
+
+### Recommended for multi-user deployments
+
+- Run the MCP server in HTTP mode behind Docker/reverse proxy.
+- Keep only `GHOST_API_URL` in server/container config.
+- Require every MCP client to send its own Ghost admin key via headers.
+- Do not set a shared `GHOST_ADMIN_API_KEY` in compose for HTTP multi-user setups.
 
 ### Remote HTTPS (no SSH)
 
@@ -72,7 +92,7 @@ For local development, you can build your own image instead:
 docker build -t ghost-mcp:local .
 ```
 
-### Original npx usage (still supported)
+### Original npx usage (still supported, stdio/local)
 
 To use this with MCP clients (for example Claude Desktop), add this to your `claude_desktop_config.json`:
 
@@ -100,8 +120,12 @@ When running this server over HTTP (`MCP_TRANSPORT=http`), configure your client
 - Remote with reverse proxy/TLS: `https://your-domain.example/`
 
 > [!IMPORTANT]
-> For HTTP mode, keep `GHOST_ADMIN_API_KEY` on the server/container environment.
-> The client only needs the MCP URL.
+> For HTTP mode, keep only `GHOST_API_URL` on the server/container.
+> Each MCP client should pass these headers in its MCP server config:
+> - `Authorization: Bearer <user-id:user-secret>`
+> - `x-ghost-api-version: v5.0` (optional; defaults to `v5.0`)
+>
+> Legacy compatibility: `x-ghost-admin-api-key` is also accepted.
 
 #### Claude (Claude Code / Claude Desktop)
 
@@ -110,7 +134,9 @@ Claude Code (CLI):
 Add the server:
 
 ```bash
-claude mcp add --transport http ghost-mcp http://localhost:3000/
+claude mcp add --transport http ghost-mcp http://localhost:3000/ \
+  --header "Authorization: Bearer your-id:your-secret" \
+  --header "x-ghost-api-version: v5.0"
 ```
 
 Verify:
@@ -127,7 +153,11 @@ Claude Desktop (HTTP-capable versions):
   "mcpServers": {
     "ghost-mcp": {
       "type": "http",
-      "url": "http://localhost:3000/"
+      "url": "http://localhost:3000/",
+      "headers": {
+        "Authorization": "Bearer your-id:your-secret",
+        "x-ghost-api-version": "v5.0"
+      }
     }
   }
 }
@@ -147,12 +177,18 @@ Then choose:
 - Server Name: `ghost-mcp`
 - Server Type: `HTTP`
 - URL: `http://localhost:3000/`
+- HTTP Headers: `{ "Authorization": "Bearer your-id:your-secret", "x-ghost-api-version": "v5.0" }`
 - Tools: `*` (or restrict to specific tool names)
 
 Option B (command line):
 
 ```bash
-copilot mcp add ghost-mcp --type http --url http://localhost:3000/ --tools "*"
+copilot mcp add ghost-mcp \
+  --type http \
+  --url http://localhost:3000/ \
+  --header "Authorization=Bearer your-id:your-secret" \
+  --header "x-ghost-api-version=v5.0" \
+  --tools "*"
 ```
 
 #### VS Code (Copilot Chat Agent mode)
@@ -164,13 +200,54 @@ Create or edit `.vscode/mcp.json`:
   "servers": {
     "ghost-mcp": {
       "type": "http",
-      "url": "http://localhost:3000/"
+      "url": "http://localhost:3000/",
+      "requestInit": {
+        "headers": {
+          "Authorization": "Bearer your-id:your-secret",
+          "x-ghost-api-version": "v5.0"
+        }
+      }
     }
   }
 }
 ```
 
 Then in Copilot Chat, switch to Agent mode and enable tools for `ghost-mcp`.
+
+### Troubleshooting HTTP MCP sessions
+
+#### Streamable HTTP handshake requirements
+
+This server uses MCP Streamable HTTP. Clients must implement the MCP lifecycle for HTTP:
+
+1. `POST initialize` (server responds with `mcp-session-id` header)
+2. `POST notifications/initialized` (with the same `mcp-session-id`)
+3. `POST tools/list` and `POST tools/call` (with the same `mcp-session-id`)
+
+HTTP expectations:
+
+- Request header must include `Accept: application/json, text/event-stream`
+- Authentication should use `Authorization: Bearer <ghost-admin-key>`
+- Response may be SSE (`Content-Type: text/event-stream`) with `data: {...}` events
+- Subsequent requests must send `mcp-session-id` from the initialize response
+
+If a client skips this handshake, HTTP requests can fail with `400` errors.
+In that case, use a client with full Streamable HTTP MCP support, or use stdio/npx mode.
+
+If you see this error from a client:
+
+```text
+Bad Request: Server not initialized
+```
+
+Most commonly, the client is reusing an old MCP session after the server/container was restarted.
+
+Fix steps:
+
+1. Restart the MCP container.
+2. Reconnect the MCP server entry in your client (disable/enable, or remove/add).
+3. Confirm your MCP URL exactly matches `MCP_HTTP_PATH` (default is `/`, so use `http://host:3000/`).
+4. Verify the server health endpoint returns `ok` at `/health`.
 
 ---
 
