@@ -88,6 +88,14 @@ async function startHttpServer() {
 
     const sessions = new Map<string, SessionRuntime>();
 
+    function logHttpEvent(message: string, details?: Record<string, unknown>) {
+        if (!details || Object.keys(details).length === 0) {
+            console.error(`[http] ${message}`);
+            return;
+        }
+        console.error(`[http] ${message} ${JSON.stringify(details)}`);
+    }
+
     function getHeaderValue(req: import("node:http").IncomingMessage, name: string): string | undefined {
         const raw = req.headers[name.toLowerCase()];
         if (Array.isArray(raw)) {
@@ -130,6 +138,22 @@ async function startHttpServer() {
     }
 
     const httpServer = createServer(async (req, res) => {
+        const startedAt = Date.now();
+        const requestPath = req.url || '/';
+        const requestMethod = req.method || 'UNKNOWN';
+        const requestSessionId = getHeaderValue(req, 'mcp-session-id');
+
+        res.on('finish', () => {
+            const durationMs = Date.now() - startedAt;
+            logHttpEvent('response', {
+                method: requestMethod,
+                path: requestPath,
+                sessionId: requestSessionId || null,
+                statusCode: res.statusCode,
+                durationMs,
+            });
+        });
+
         try {
             const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
 
@@ -167,6 +191,29 @@ async function startHttpServer() {
                 }
             }
 
+            const jsonRpcMethods = (() => {
+                if (!parsedBody) {
+                    return [] as string[];
+                }
+                if (Array.isArray(parsedBody)) {
+                    return parsedBody
+                        .map((entry) => (typeof entry === 'object' && entry ? (entry as { method?: unknown }).method : undefined))
+                        .filter((value): value is string => typeof value === 'string');
+                }
+                if (typeof parsedBody === 'object' && parsedBody) {
+                    const method = (parsedBody as { method?: unknown }).method;
+                    return typeof method === 'string' ? [method] : [];
+                }
+                return [] as string[];
+            })();
+
+            logHttpEvent('request', {
+                method: req.method || 'UNKNOWN',
+                path: url.pathname,
+                sessionId: requestSessionId || null,
+                jsonRpcMethods,
+            });
+
             const sessionId = getHeaderValue(req, 'mcp-session-id');
             let runtime: SessionRuntime | undefined;
 
@@ -182,12 +229,20 @@ async function startHttpServer() {
                                 server: newServer,
                                 transport: newTransport,
                             });
+                            logHttpEvent('session_initialized', {
+                                sessionId: newSessionId,
+                                activeSessions: sessions.size,
+                            });
                         },
                     });
 
                     newTransport.onclose = async () => {
                         if (newTransport.sessionId) {
                             sessions.delete(newTransport.sessionId);
+                            logHttpEvent('session_closed', {
+                                sessionId: newTransport.sessionId,
+                                activeSessions: sessions.size,
+                            });
                         }
                         await newServer.close();
                     };
