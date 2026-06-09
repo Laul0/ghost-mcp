@@ -2,6 +2,8 @@
 
 import { createServer } from "node:http";
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
@@ -28,10 +30,24 @@ import { registerRoleTools } from "./tools/roles";
 import { registerWebhookTools } from "./tools/webhooks";
 import { registerPrompts } from "./prompts";
 
+function getServerVersion(): string {
+    try {
+        const packageJsonPath = join(process.cwd(), 'package.json');
+        const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as { version?: unknown };
+        if (typeof packageJson.version === 'string' && packageJson.version.trim().length > 0) {
+            return packageJson.version;
+        }
+    } catch {
+        // Fall back to a static version if package metadata is not available.
+    }
+
+    return '1.0.0';
+}
+
 function createConfiguredServer(): McpServer {
     const server = new McpServer({
         name: "ghost-mcp-ts",
-        version: "1.0.0", // TODO: Get version from package.json
+        version: getServerVersion(),
     }, {
         capabilities: {
             resources: {},
@@ -73,7 +89,7 @@ async function startStdioServer() {
     const server = createConfiguredServer();
     const transport = new StdioServerTransport();
     await server.connect(transport);
-    console.error("Ghost MCP TypeScript Server running on stdio");
+    console.error(`Ghost MCP TypeScript Server v${getServerVersion()} running on stdio`);
 }
 
 async function startHttpServer() {
@@ -307,7 +323,7 @@ async function startHttpServer() {
     });
 
     httpServer.listen(port, host, () => {
-        console.error(`Ghost MCP TypeScript Server running on http://${host}:${port}${path}`);
+        console.error(`Ghost MCP TypeScript Server v${getServerVersion()} running on http://${host}:${port}${path}`);
     });
 
     process.on('SIGINT', async () => {
