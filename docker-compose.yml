@@ -1,0 +1,43 @@
+# docker-compose.yml
+#
+# SERVER OPERATOR sets GHOST_API_URL here to lock the container to one
+# Ghost instance.
+#
+# This compose file uses the published GHCR image by default.
+# Use a local Docker build only for development/testing.
+#
+# MCP CLIENTS provide at connection time (not in compose):
+#   - GHOST_ADMIN_API_KEY (required)
+#   - GHOST_API_VERSION (optional, defaults to v5.0)
+#
+# Usage example for an MCP client (e.g. Claude Desktop):
+#   {
+#     "mcpServers": {
+#       "ghost": {
+#         "command": "docker",
+#         "args": ["run", "-i", "--rm",
+#                  "-e", "GHOST_ADMIN_API_KEY",
+#                  "-e", "GHOST_API_VERSION",
+#                  "ghcr.io/laul0/ghost-mcp:latest"],
+#         "env": {
+#           "GHOST_ADMIN_API_KEY": "your-id:your-secret",
+#           "GHOST_API_VERSION": "v5.0"
+#         }
+#       }
+#     }
+#   }
+
+services:
+  ghost-mcp:
+    image: ghcr.io/laul0/ghost-mcp:latest
+    environment:
+      # Example only. Replace locally; do not commit real infrastructure values.
+      - GHOST_API_URL=https://your-ghost-site.example
+      - MCP_TRANSPORT=http
+      - MCP_PORT=3000
+    ports:
+      - "3000:3000"
+    # Keep stdin open so the MCP stdio transport works correctly
+    stdin_open: true
+    tty: false
+    restart: unless-stopped
