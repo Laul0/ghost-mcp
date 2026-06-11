@@ -27,7 +27,7 @@ RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
 # Copy compiled output from builder
 COPY --from=builder /app/build ./build
 
-# The server communicates over stdio (MCP transport), so no port is exposed.
+# The runtime image defaults to HTTP MCP transport and exposes port 3000.
 # Required environment variables:
 #   GHOST_API_URL        – e.g. https://your-ghost-site.com
 #   GHOST_ADMIN_API_KEY  – Ghost Admin API key (id:secret format)

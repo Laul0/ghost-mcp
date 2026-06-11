@@ -1,6 +1,6 @@
 # Ghost MCP Server
 
-A Model Context Protocol (MCP) server for interacting with Ghost CMS through LLM interfaces like Claude, Microsoft Copilot, etc. This server provides secure and comprehensive access to your Ghost blog, leveraging JWT auth[...]
+A Model Context Protocol (MCP) server for interacting with Ghost CMS through LLM interfaces like Claude, Microsoft Copilot, etc. This server provides secure and comprehensive access to your Ghost blog, leveraging JWT authentication.
 
 > [!NOTE]
 > This repository is a fork of [MFYDev/ghost-mcp](https://github.com/MFYDev/ghost-mcp) and extends the original connection model with an HTTP MCP server and multi-session support.

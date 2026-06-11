@@ -3,6 +3,7 @@ import { GHOST_API_URL, GHOST_ADMIN_API_KEY, GHOST_API_VERSION } from './config'
 import { getGhostRequestContext } from './requestContext';
 
 const clientsByCredential = new Map<string, any>();
+const MAX_CACHED_CLIENTS = 100;
 
 function getRuntimeCredentials(): { key: string; version: string } {
     const context = getGhostRequestContext();
@@ -12,7 +13,7 @@ function getRuntimeCredentials(): { key: string; version: string } {
 
     if (!key) {
         throw new Error(
-            'GHOST_ADMIN_API_KEY is missing. For HTTP transport, send x-ghost-admin-api-key in MCP client headers. For stdio transport, set GHOST_ADMIN_API_KEY in the client env.'
+            'GHOST_ADMIN_API_KEY is missing. For HTTP transport, send an Authorization bearer token (or legacy x-ghost-admin-api-key) in MCP client headers. For stdio transport, set GHOST_ADMIN_API_KEY in the client env.'
         );
     }
 
@@ -24,6 +25,13 @@ function getGhostApiClient(): any {
     const cacheKey = `${version}::${key}`;
 
     if (!clientsByCredential.has(cacheKey)) {
+        if (clientsByCredential.size >= MAX_CACHED_CLIENTS) {
+            const oldestKey = clientsByCredential.keys().next().value;
+            if (oldestKey) {
+                clientsByCredential.delete(oldestKey);
+            }
+        }
+
         // Initialize lazily so the MCP server can boot even when no key is set yet.
         clientsByCredential.set(cacheKey, new GhostAdminAPI({
             url: GHOST_API_URL,
@@ -36,9 +44,9 @@ function getGhostApiClient(): any {
 }
 
 export const ghostApiClient = new Proxy({} as any, {
-    get(_target, prop, receiver) {
+    get(_target, prop) {
         const client = getGhostApiClient() as unknown as Record<PropertyKey, unknown>;
-        const value = Reflect.get(client, prop, receiver);
+        const value = Reflect.get(client, prop, client);
         if (typeof value === 'function') {
             return (value as Function).bind(client);
         }

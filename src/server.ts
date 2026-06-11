@@ -32,7 +32,7 @@ import { registerPrompts } from "./prompts";
 
 function getServerVersion(): string {
     try {
-        const packageJsonPath = join(process.cwd(), 'package.json');
+        const packageJsonPath = join(__dirname, '..', 'package.json');
         const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as { version?: unknown };
         if (typeof packageJson.version === 'string' && packageJson.version.trim().length > 0) {
             return packageJson.version;
@@ -81,7 +81,7 @@ function createConfiguredServer(): McpServer {
 }
 
 function getTransportMode(): 'stdio' | 'http' {
-    const transport = (process.env.MCP_TRANSPORT || 'http').toLowerCase();
+    const transport = (process.env.MCP_TRANSPORT || 'stdio').toLowerCase();
     return transport === 'stdio' ? 'stdio' : 'http';
 }
 
@@ -94,8 +94,11 @@ async function startStdioServer() {
 
 async function startHttpServer() {
     const host = process.env.MCP_HOST || '0.0.0.0';
-    const port = Number(process.env.MCP_PORT || '3000');
+    const parsedPort = Number.parseInt(process.env.MCP_PORT || '3000', 10);
+    const port = Number.isFinite(parsedPort) && parsedPort > 0 ? parsedPort : 3000;
     const path = process.env.MCP_HTTP_PATH || '/';
+    const maxBodyBytes = Number.parseInt(process.env.MCP_MAX_BODY_BYTES || '1048576', 10);
+    const maxSessionCount = Number.parseInt(process.env.MCP_MAX_SESSIONS || '1000', 10);
 
     type SessionRuntime = {
         server: McpServer;
@@ -188,8 +191,20 @@ async function startHttpServer() {
             let parsedBody: unknown;
             if (req.method === 'POST') {
                 const chunks: Buffer[] = [];
+                let totalBytes = 0;
                 for await (const chunk of req) {
-                    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+                    const chunkBuffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+                    totalBytes += chunkBuffer.length;
+                    if (Number.isFinite(maxBodyBytes) && maxBodyBytes > 0 && totalBytes > maxBodyBytes) {
+                        res.writeHead(413, { 'content-type': 'application/json' });
+                        res.end(JSON.stringify({
+                            jsonrpc: '2.0',
+                            error: { code: -32000, message: 'Request body too large' },
+                            id: null,
+                        }));
+                        return;
+                    }
+                    chunks.push(chunkBuffer);
                 }
                 const body = Buffer.concat(chunks).toString('utf-8');
                 if (body) {
@@ -237,6 +252,16 @@ async function startHttpServer() {
                 if (sessionId && sessions.has(sessionId)) {
                     runtime = sessions.get(sessionId);
                 } else if (!sessionId && isInitializePayload(parsedBody)) {
+                    if (Number.isFinite(maxSessionCount) && maxSessionCount > 0 && sessions.size >= maxSessionCount) {
+                        res.writeHead(503, { 'content-type': 'application/json' });
+                        res.end(JSON.stringify({
+                            jsonrpc: '2.0',
+                            error: { code: -32000, message: 'Server session limit reached' },
+                            id: null,
+                        }));
+                        return;
+                    }
+
                     const newServer = createConfiguredServer();
                     const newTransport = new StreamableHTTPServerTransport({
                         sessionIdGenerator: () => randomUUID(),
@@ -326,12 +351,15 @@ async function startHttpServer() {
         console.error(`Ghost MCP TypeScript Server v${getServerVersion()} running on http://${host}:${port}${path}`);
     });
 
-    process.on('SIGINT', async () => {
+    const shutdown = async () => {
         for (const runtime of sessions.values()) {
             await runtime.transport.close();
         }
         httpServer.close(() => process.exit(0));
-    });
+    };
+
+    process.once('SIGINT', shutdown);
+    process.once('SIGTERM', shutdown);
 }
 
 async function startServer() {
