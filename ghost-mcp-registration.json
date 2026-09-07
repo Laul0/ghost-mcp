@@ -1,0 +1,20 @@
+{
+  "serverName": "ext_GhostBlog",
+  "serverUrl": "https://ghost/mcp",
+  "authType": "APIKey",
+  "description": "Serveur MCP Ghost CMS - gestion des articles, tags et membres du blog.",
+  "publisherName": "Laul0",
+  "tools": [
+    { "name": "posts_browse", "description": "Lister et filtrer les articles du blog." },
+    { "name": "posts_add", "description": "Créer un article, en brouillon ou publié." },
+    { "name": "posts_edit", "description": "Modifier un article existant." },
+    { "name": "tags_browse", "description": "Lister les tags du blog." },
+    { "name": "members_browse", "description": "Lister les membres du blog." }
+  ],
+  "remoteScopes": null,
+  "externalOAuth": null,
+  "apiKey": {
+    "location": "Header",
+    "name": "Authorization"
+  }
+}
