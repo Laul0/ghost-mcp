@@ -316,6 +316,39 @@ async function startHttpServer() {
                         server: newServer,
                         transport: newTransport,
                     };
+                } else if (!sessionId) {
+                    // Stateless fallback: some simple JSON-RPC clients (e.g. schema-discovery
+                    // tools) never capture/forward the Mcp-Session-Id header returned from
+                    // initialize, and instead send initialize/notifications/tools-list as
+                    // independent requests. Rather than reject these with 400, spin up a
+                    // short-lived, per-request server+transport with no session tracking so the
+                    // single request can still be answered. Real stateful clients that do
+                    // provide the header (e.g. GitHub Copilot) are unaffected and keep using the
+                    // persistent per-session runtime above.
+                    const statelessServer = createConfiguredServer();
+                    const statelessTransport = new StreamableHTTPServerTransport({
+                        sessionIdGenerator: undefined,
+                    });
+
+                    // This branch only runs for non-initialize methods (the initialize case is
+                    // handled above), so this transport never goes through the SDK's normal
+                    // initialize handshake. The SDK's StreamableHTTPServerTransport otherwise
+                    // rejects any request as "Server not initialized" until it has processed an
+                    // "initialize" message on that same transport instance. Since this fallback
+                    // deliberately skips session/handshake tracking, mark it pre-initialized so
+                    // the request can be handled directly.
+                    (statelessTransport as unknown as { _initialized: boolean })._initialized = true;
+
+                    res.on('close', () => {
+                        statelessTransport.close().catch(() => undefined);
+                        statelessServer.close().catch(() => undefined);
+                    });
+
+                    await statelessServer.connect(statelessTransport);
+                    runtime = {
+                        server: statelessServer,
+                        transport: statelessTransport,
+                    };
                 } else {
                     res.writeHead(400, { 'content-type': 'application/json' });
                     res.end(JSON.stringify({
