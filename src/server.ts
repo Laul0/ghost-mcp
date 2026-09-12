@@ -134,6 +134,21 @@ async function startHttpServer() {
         return match?.[1]?.trim() || undefined;
     }
 
+    const corsAllowedOrigin = process.env.MCP_CORS_ORIGIN || '*';
+    const corsAllowedMethods = 'GET, POST, DELETE, OPTIONS';
+    const corsAllowedHeaders = 'Content-Type, Authorization, mcp-session-id, mcp-protocol-version, x-ghost-admin-api-key, x-ghost-api-version';
+
+    function setCorsHeaders(res: import("node:http").ServerResponse) {
+        res.setHeader('Access-Control-Allow-Origin', corsAllowedOrigin);
+        res.setHeader('Access-Control-Allow-Methods', corsAllowedMethods);
+        res.setHeader('Access-Control-Allow-Headers', corsAllowedHeaders);
+        res.setHeader('Access-Control-Expose-Headers', 'mcp-session-id');
+        res.setHeader('Access-Control-Max-Age', '86400');
+        if (corsAllowedOrigin !== '*') {
+            res.setHeader('Vary', 'Origin');
+        }
+    }
+
     function isInitializePayload(payload: unknown): boolean {
         if (!payload) {
             return false;
@@ -174,6 +189,14 @@ async function startHttpServer() {
         });
 
         try {
+            setCorsHeaders(res);
+
+            if (req.method === 'OPTIONS') {
+                res.writeHead(204);
+                res.end();
+                return;
+            }
+
             const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
 
             if (url.pathname === '/health') {
