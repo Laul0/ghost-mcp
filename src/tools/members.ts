@@ -5,38 +5,39 @@ import { ghostApiClient } from "../ghostApi";
 
 // Parameter schemas as ZodRawShape (object literals)
 const browseParams = {
-  filter: z.string().optional(),
-  limit: z.number().optional(),
-  page: z.number().optional(),
-  order: z.string().optional(),
+  filter: z.string().optional().describe("Ghost NQL filter expression to narrow the list of members, e.g. \"status:paid\"."),
+  limit: z.number().optional().describe("Maximum number of members to return per page."),
+  page: z.number().optional().describe("Page number to retrieve, starting at 1."),
+  order: z.string().optional().describe("Sort order expression, e.g. \"created_at DESC\"."),
 };
 const readParams = {
-  id: z.string().optional(),
-  email: z.string().optional(),
+  id: z.string().optional().describe("Ghost member ID to look up. Provide either id or email."),
+  email: z.string().optional().describe("Member email address to look up. Provide either id or email."),
 };
 const addParams = {
-  email: z.string(),
-  name: z.string().optional(),
-  note: z.string().optional(),
-  labels: z.array(z.object({ name: z.string(), slug: z.string().optional() })).optional(),
-  newsletters: z.array(z.object({ id: z.string() })).optional(),
+  email: z.string().describe("Email address of the new member. Must be unique."),
+  name: z.string().optional().describe("Display name of the member."),
+  note: z.string().optional().describe("Internal staff note about the member."),
+  labels: z.array(z.object({ name: z.string().describe("Label name."), slug: z.string().optional().describe("Label slug.") })).optional().describe("Labels to attach to the member for segmentation."),
+  newsletters: z.array(z.object({ id: z.string().describe("Newsletter ID to subscribe the member to.") })).optional().describe("Newsletters the member should be subscribed to."),
 };
 const editParams = {
-  id: z.string(),
-  email: z.string().optional(),
-  name: z.string().optional(),
-  note: z.string().optional(),
-  labels: z.array(z.object({ name: z.string(), slug: z.string().optional() })).optional(),
-  newsletters: z.array(z.object({ id: z.string() })).optional(),
+  id: z.string().describe("Ghost member ID to edit."),
+  email: z.string().optional().describe("New email address for the member."),
+  name: z.string().optional().describe("New display name for the member."),
+  note: z.string().optional().describe("New internal staff note about the member."),
+  labels: z.array(z.object({ name: z.string().describe("Label name."), slug: z.string().optional().describe("Label slug.") })).optional().describe("Labels to attach to the member for segmentation."),
+  newsletters: z.array(z.object({ id: z.string().describe("Newsletter ID to subscribe the member to.") })).optional().describe("Newsletters the member should be subscribed to."),
 };
 const deleteParams = {
-  id: z.string(),
+  id: z.string().describe("Ghost member ID to delete."),
 };
 
 export function registerMemberTools(server: McpServer) {
   // Browse members
   server.tool(
     "members_browse",
+    "List Ghost members with optional filtering, pagination, and ordering.",
     browseParams,
     async (args, _extra) => {
       const members = await ghostApiClient.members.browse(args);
@@ -54,6 +55,7 @@ export function registerMemberTools(server: McpServer) {
   // Read member
   server.tool(
     "members_read",
+    "Retrieve a single Ghost member by ID or email.",
     readParams,
     async (args, _extra) => {
       const member = await ghostApiClient.members.read(args);
@@ -71,6 +73,7 @@ export function registerMemberTools(server: McpServer) {
   // Add member
   server.tool(
     "members_add",
+    "Create a new Ghost member/subscriber.",
     addParams,
     async (args, _extra) => {
       const member = await ghostApiClient.members.add(args);
@@ -88,6 +91,7 @@ export function registerMemberTools(server: McpServer) {
   // Edit member
   server.tool(
     "members_edit",
+    "Update an existing Ghost member by ID.",
     editParams,
     async (args, _extra) => {
       const member = await ghostApiClient.members.edit(args);
@@ -105,6 +109,7 @@ export function registerMemberTools(server: McpServer) {
   // Delete member
   server.tool(
     "members_delete",
+    "Permanently delete a Ghost member by ID.",
     deleteParams,
     async (args, _extra) => {
       await ghostApiClient.members.delete(args);

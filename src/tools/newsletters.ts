@@ -5,61 +5,62 @@ import { ghostApiClient } from "../ghostApi";
 
 // Parameter schemas as ZodRawShape (object literals)
 const browseParams = {
-  filter: z.string().optional(),
-  limit: z.number().optional(),
-  page: z.number().optional(),
-  order: z.string().optional(),
+  filter: z.string().optional().describe("Ghost NQL filter expression to narrow the list of newsletters."),
+  limit: z.number().optional().describe("Maximum number of newsletters to return per page."),
+  page: z.number().optional().describe("Page number to retrieve, starting at 1."),
+  order: z.string().optional().describe("Sort order expression, e.g. \"name ASC\"."),
 };
 const readParams = {
-  id: z.string().optional(),
-  slug: z.string().optional(),
+  id: z.string().optional().describe("Ghost newsletter ID to look up. Provide either id or slug."),
+  slug: z.string().optional().describe("Ghost newsletter slug to look up. Provide either id or slug."),
 };
 const addParams = {
-  name: z.string(),
-  description: z.string().optional(),
-  sender_reply_to: z.string().optional(),
-  status: z.string().optional(),
-  subscribe_on_signup: z.boolean().optional(),
-  show_header_icon: z.boolean().optional(),
-  show_header_title: z.boolean().optional(),
-  show_header_name: z.boolean().optional(),
-  title_font_category: z.string().optional(),
-  title_alignment: z.string().optional(),
-  show_feature_image: z.boolean().optional(),
-  body_font_category: z.string().optional(),
-  show_badge: z.boolean().optional(),
+  name: z.string().describe("Name of the new newsletter."),
+  description: z.string().optional().describe("Description of the newsletter shown to subscribers."),
+  sender_reply_to: z.string().optional().describe("Reply-to email address used for outgoing newsletter emails."),
+  status: z.string().optional().describe("Newsletter status, e.g. \"active\" or \"archived\"."),
+  subscribe_on_signup: z.boolean().optional().describe("Whether new members are subscribed to this newsletter by default."),
+  show_header_icon: z.boolean().optional().describe("Whether to display the site icon in the newsletter header."),
+  show_header_title: z.boolean().optional().describe("Whether to display the site title in the newsletter header."),
+  show_header_name: z.boolean().optional().describe("Whether to display the newsletter's own name in the header."),
+  title_font_category: z.string().optional().describe("Font category used for post titles, e.g. \"sans_serif\" or \"serif\"."),
+  title_alignment: z.string().optional().describe("Alignment for post titles, e.g. \"left\" or \"center\"."),
+  show_feature_image: z.boolean().optional().describe("Whether to include each post's feature image in the newsletter."),
+  body_font_category: z.string().optional().describe("Font category used for the newsletter body, e.g. \"sans_serif\" or \"serif\"."),
+  show_badge: z.boolean().optional().describe("Whether to show the \"Published with Ghost\" badge in the footer."),
   // Add more fields as needed
 };
 const editParams = {
-  id: z.string(),
-  name: z.string().optional(),
-  description: z.string().optional(),
-  sender_name: z.string().optional(),
-  sender_email: z.string().optional(),
-  sender_reply_to: z.string().optional(),
-  status: z.string().optional(),
-  subscribe_on_signup: z.boolean().optional(),
-  sort_order: z.number().optional(),
-  header_image: z.string().optional(),
-  show_header_icon: z.boolean().optional(),
-  show_header_title: z.boolean().optional(),
-  title_font_category: z.string().optional(),
-  title_alignment: z.string().optional(),
-  show_feature_image: z.boolean().optional(),
-  body_font_category: z.string().optional(),
-  footer_content: z.string().optional(),
-  show_badge: z.boolean().optional(),
-  show_header_name: z.boolean().optional(),
+  id: z.string().describe("Ghost newsletter ID to edit."),
+  name: z.string().optional().describe("New name for the newsletter."),
+  description: z.string().optional().describe("New description for the newsletter."),
+  sender_name: z.string().optional().describe("New sender display name shown to email recipients."),
+  sender_email: z.string().optional().describe("New sender email address (must be verified with Ghost)."),
+  sender_reply_to: z.string().optional().describe("New reply-to email address used for outgoing newsletter emails."),
+  status: z.string().optional().describe("New newsletter status, e.g. \"active\" or \"archived\"."),
+  subscribe_on_signup: z.boolean().optional().describe("Whether new members are subscribed to this newsletter by default."),
+  sort_order: z.number().optional().describe("Display order of this newsletter relative to others."),
+  header_image: z.string().optional().describe("URL of the image shown in the newsletter header."),
+  show_header_icon: z.boolean().optional().describe("Whether to display the site icon in the newsletter header."),
+  show_header_title: z.boolean().optional().describe("Whether to display the site title in the newsletter header."),
+  title_font_category: z.string().optional().describe("Font category used for post titles."),
+  title_alignment: z.string().optional().describe("Alignment for post titles, e.g. \"left\" or \"center\"."),
+  show_feature_image: z.boolean().optional().describe("Whether to include each post's feature image in the newsletter."),
+  body_font_category: z.string().optional().describe("Font category used for the newsletter body."),
+  footer_content: z.string().optional().describe("Custom HTML content shown in the newsletter footer."),
+  show_badge: z.boolean().optional().describe("Whether to show the \"Published with Ghost\" badge in the footer."),
+  show_header_name: z.boolean().optional().describe("Whether to display the newsletter's own name in the header."),
   // Add more fields as needed
 };
 const deleteParams = {
-  id: z.string(),
+  id: z.string().describe("Ghost newsletter ID to delete."),
 };
 
 export function registerNewsletterTools(server: McpServer) {
   // Browse newsletters
   server.tool(
     "newsletters_browse",
+    "List Ghost newsletters with optional filtering, pagination, and ordering.",
     browseParams,
     async (args, _extra) => {
       const newsletters = await ghostApiClient.newsletters.browse(args);
@@ -77,6 +78,7 @@ export function registerNewsletterTools(server: McpServer) {
   // Read newsletter
   server.tool(
     "newsletters_read",
+    "Retrieve a single Ghost newsletter by ID or slug.",
     readParams,
     async (args, _extra) => {
       const newsletter = await ghostApiClient.newsletters.read(args);
@@ -94,6 +96,7 @@ export function registerNewsletterTools(server: McpServer) {
   // Add newsletter
   server.tool(
     "newsletters_add",
+    "Create a new Ghost newsletter.",
     addParams,
     async (args, _extra) => {
       const newsletter = await ghostApiClient.newsletters.add(args);
@@ -111,6 +114,7 @@ export function registerNewsletterTools(server: McpServer) {
   // Edit newsletter
   server.tool(
     "newsletters_edit",
+    "Update an existing Ghost newsletter by ID.",
     editParams,
     async (args, _extra) => {
       const newsletter = await ghostApiClient.newsletters.edit(args);
@@ -128,6 +132,7 @@ export function registerNewsletterTools(server: McpServer) {
   // Delete newsletter
   server.tool(
     "newsletters_delete",
+    "Permanently delete a Ghost newsletter by ID.",
     deleteParams,
     async (args, _extra) => {
       await ghostApiClient.newsletters.delete(args);

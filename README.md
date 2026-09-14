@@ -344,10 +344,7 @@ Ghost MCP Server employs a custom `GhostError` exception to handle API communica
 
 ## Contributing
 
-1. Fork repository
-2. Create feature branch
-3. Commit changes
-4. Create pull request
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, running unit tests, generating an MCP evaluation report, and guidance on working with the Ghost Admin API.
 
 ## License
 

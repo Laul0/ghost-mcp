@@ -13,7 +13,9 @@
         "build": "tsc",
         "start": "node build/server.js",
         "prepare": "npm run build",
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "vitest run",
+        "eval:offline": "a365 develop-mcp evaluate --server-url \"${MCP_EVAL_URL:-http://localhost:3000/}\" --output-dir \"./eval\" --eval-engine none",
+        "eval:llm": "a365 develop-mcp evaluate --server-url \"${MCP_EVAL_URL:-http://localhost:3000/}\" --output-dir \"./eval\" --eval-engine auto"
     },
     "publishConfig": {
         "access": "public"
@@ -31,6 +33,7 @@
     "devDependencies": {
         "@types/axios": "^0.9.36",
         "@types/node": "^22.14.1",
-        "typescript": "^5.8.3"
+        "typescript": "^5.8.3",
+        "vitest": "^5.0.0"
     }
 }
