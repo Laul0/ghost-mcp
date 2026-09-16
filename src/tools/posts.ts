@@ -11,7 +11,7 @@ const browseParams = {
   order: z.string().optional().describe("Sort order expression, e.g. \"published_at DESC\"."),
 };
 const readParams = {
-  id: z.string().optional().describe("Ghost post ID to look up. Provide either id or slug."),
+  id: z.string().optional().describe("Ghost post ID to look up (24-character hexadecimal object ID). Provide either id or slug."),
   slug: z.string().optional().describe("Ghost post slug to look up. Provide either id or slug."),
 };
 // Shared mutable post fields — accepted by both posts_add and posts_edit.
@@ -65,20 +65,20 @@ const addParams = {
   ...postMutableFields,
 };
 const editParams = {
-  id: z.string().describe("Ghost post ID to edit."),
+  id: z.string().describe("Ghost post ID to edit (24-character hexadecimal object ID)."),
   updated_at: z.string().describe("The post's current updated_at timestamp, required by Ghost to detect edit conflicts."),
   title: z.string().optional().describe("New title for the post."),
   ...postMutableFields,
 };
 const deleteParams = {
-  id: z.string().describe("Ghost post ID to delete."),
+  id: z.string().describe("Ghost post ID to delete (24-character hexadecimal object ID)."),
 };
 
 export function registerPostTools(server: McpServer) {
   // Browse posts
   server.tool(
     "posts_browse",
-    "List Ghost blog posts with optional filtering, pagination, and ordering.",
+    "List Ghost blog posts with optional filtering, pagination, and ordering. Returns an array of post objects (empty array if none match), each including id, title, status, and url. Use this to search or page through posts before reading, editing, or deleting a specific one, e.g. filter: \"status:published\", limit: 15. Does not return the full post content — use posts_read for the complete html/lexical body.",
     browseParams,
     async (args, _extra) => {
       const posts = await ghostApiClient.posts.browse(args);
@@ -96,7 +96,7 @@ export function registerPostTools(server: McpServer) {
   // Read post
   server.tool(
     "posts_read",
-    "Retrieve a single Ghost blog post by ID or slug.",
+    "Retrieve a single Ghost blog post by ID or slug. Returns the full post object including html/lexical content, or an error if no post matches. Use this once you know the ID or slug (e.g. from posts_browse) and need the complete content, e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\".",
     readParams,
     async (args, _extra) => {
       const post = await ghostApiClient.posts.read(args);
@@ -114,7 +114,7 @@ export function registerPostTools(server: McpServer) {
   // Add post
   server.tool(
     "posts_add",
-    "Create a new Ghost blog post with a title, optional HTML/Lexical content, and metadata.",
+    "Create a new Ghost blog post with a title, optional HTML/Lexical content, and metadata. Returns the created post object including its generated ID and slug. Only title is required; the post defaults to draft status unless status is set. Use this to publish or draft new content, e.g. title: \"Hello World\", status: \"draft\".",
     addParams,
     async (args, _extra) => {
       // If html is present, use source: "html" to ensure Ghost uses the html content
@@ -134,7 +134,7 @@ export function registerPostTools(server: McpServer) {
   // Edit post
   server.tool(
     "posts_edit",
-    "Update an existing Ghost blog post by ID.",
+    "Update an existing Ghost blog post by ID. Returns the updated post object. Requires the post's current updated_at timestamp to avoid overwriting concurrent edits; fetch it via posts_read first — the edit fails with a conflict error if updated_at is stale. Use this to change status, content, or metadata on a post you already have the ID for, e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\", status: \"published\".",
     editParams,
     async (args, _extra) => {
       // If html is present, use source: "html" to ensure Ghost uses the html content for updates
@@ -154,7 +154,7 @@ export function registerPostTools(server: McpServer) {
   // Delete post
   server.tool(
     "posts_delete",
-    "Permanently delete a Ghost blog post by ID.",
+    "Permanently delete a Ghost blog post by ID. Returns a plain-text confirmation message; this action cannot be undone. Use this only after confirming the correct post via posts_browse or posts_read, e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\".",
     deleteParams,
     async (args, _extra) => {
       await ghostApiClient.posts.delete(args);

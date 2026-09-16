@@ -11,7 +11,7 @@ const browseParams = {
   order: z.string().optional().describe("Sort order expression, e.g. \"created_at DESC\"."),
 };
 const readParams = {
-  id: z.string().optional().describe("Ghost member ID to look up. Provide either id or email."),
+  id: z.string().optional().describe("Ghost member ID to look up (24-character hexadecimal object ID). Provide either id or email."),
   email: z.string().optional().describe("Member email address to look up. Provide either id or email."),
 };
 const addParams = {
@@ -22,7 +22,7 @@ const addParams = {
   newsletters: z.array(z.object({ id: z.string().describe("Newsletter ID to subscribe the member to.") })).optional().describe("Newsletters the member should be subscribed to."),
 };
 const editParams = {
-  id: z.string().describe("Ghost member ID to edit."),
+  id: z.string().describe("Ghost member ID to edit (24-character hexadecimal object ID)."),
   email: z.string().optional().describe("New email address for the member."),
   name: z.string().optional().describe("New display name for the member."),
   note: z.string().optional().describe("New internal staff note about the member."),
@@ -30,14 +30,14 @@ const editParams = {
   newsletters: z.array(z.object({ id: z.string().describe("Newsletter ID to subscribe the member to.") })).optional().describe("Newsletters the member should be subscribed to."),
 };
 const deleteParams = {
-  id: z.string().describe("Ghost member ID to delete."),
+  id: z.string().describe("Ghost member ID to delete (24-character hexadecimal object ID)."),
 };
 
 export function registerMemberTools(server: McpServer) {
   // Browse members
   server.tool(
     "members_browse",
-    "List Ghost members with optional filtering, pagination, and ordering.",
+    "List Ghost members with optional filtering, pagination, and ordering. Returns an array of member objects (empty array if none match), each including id, email, name, and status. Use this to search or page through members before reading, editing, or deleting a specific one, e.g. filter: \"status:paid\", limit: 15.",
     browseParams,
     async (args, _extra) => {
       const members = await ghostApiClient.members.browse(args);
@@ -55,7 +55,7 @@ export function registerMemberTools(server: McpServer) {
   // Read member
   server.tool(
     "members_read",
-    "Retrieve a single Ghost member by ID or email.",
+    "Retrieve a single Ghost member by ID or email. Returns the full member object including labels and newsletter subscriptions, or an error if no member matches. Use this once you know the ID or email (e.g. from members_browse) and need full details, e.g. email: \"jane@example.com\".",
     readParams,
     async (args, _extra) => {
       const member = await ghostApiClient.members.read(args);
@@ -73,7 +73,7 @@ export function registerMemberTools(server: McpServer) {
   // Add member
   server.tool(
     "members_add",
-    "Create a new Ghost member/subscriber.",
+    "Create a new Ghost member/subscriber. Returns the created member object including its generated ID. Only email is required and must be unique; fails if a member with that email already exists. Use this to manually add a subscriber outside of the normal signup flow, e.g. email: \"jane@example.com\", name: \"Jane Doe\".",
     addParams,
     async (args, _extra) => {
       const member = await ghostApiClient.members.add(args);
@@ -91,7 +91,7 @@ export function registerMemberTools(server: McpServer) {
   // Edit member
   server.tool(
     "members_edit",
-    "Update an existing Ghost member by ID.",
+    "Update an existing Ghost member by ID. Returns the updated member object. Only the fields you provide are changed; omitted fields are left as-is. Use this to update contact info, notes, labels, or newsletter subscriptions for a member you already have the ID for, e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\", note: \"VIP customer\".",
     editParams,
     async (args, _extra) => {
       const member = await ghostApiClient.members.edit(args);
@@ -109,7 +109,7 @@ export function registerMemberTools(server: McpServer) {
   // Delete member
   server.tool(
     "members_delete",
-    "Permanently delete a Ghost member by ID.",
+    "Permanently delete a Ghost member by ID. Returns a plain-text confirmation message; this action cannot be undone and cancels any active subscriptions. Use this only after confirming the correct member via members_browse or members_read, e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\".",
     deleteParams,
     async (args, _extra) => {
       await ghostApiClient.members.delete(args);
