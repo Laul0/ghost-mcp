@@ -1,3 +1,4 @@
+import axios from 'axios';
 import GhostAdminAPI from '@tryghost/admin-api';
 import { GHOST_API_URL, GHOST_ADMIN_API_KEY, GHOST_API_VERSION } from './config';
 import { getGhostRequestContext } from './requestContext';
@@ -5,7 +6,36 @@ import { getGhostRequestContext } from './requestContext';
 const clientsByCredential = new Map<string, any>();
 const MAX_CACHED_CLIENTS = 100;
 
-function getRuntimeCredentials(): { key: string; version: string } {
+// @tryghost/admin-api's default makeRequest has no timeout, so a slow/unreachable
+// Ghost instance would hang tool calls indefinitely. Bound every request.
+export const REQUEST_TIMEOUT_MS = 15_000;
+
+export function makeRequestWithTimeout({ url, method, data, params = {}, headers = {} }: {
+    url: string;
+    method: string;
+    data?: unknown;
+    params?: Record<string, unknown>;
+    headers?: Record<string, string>;
+}) {
+    return axios({
+        url,
+        method,
+        params,
+        data,
+        headers,
+        timeout: REQUEST_TIMEOUT_MS,
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity,
+        paramsSerializer(parameters: any) {
+            return Object.keys(parameters).reduce((parts: string[], key) => {
+                const val = encodeURIComponent(([] as unknown[]).concat(parameters[key]).join(','));
+                return parts.concat(`${key}=${val}`);
+            }, [] as string[]).join('&');
+        }
+    } as any).then((res) => res.data);
+}
+
+export function getRuntimeCredentials(): { key: string; version: string } {
     const context = getGhostRequestContext();
 
     const key = context?.adminApiKey || GHOST_ADMIN_API_KEY;
@@ -36,7 +66,8 @@ function getGhostApiClient(): any {
         clientsByCredential.set(cacheKey, new GhostAdminAPI({
             url: GHOST_API_URL,
             key,
-            version
+            version,
+            makeRequest: makeRequestWithTimeout
         }));
     }
 
