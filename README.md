@@ -259,6 +259,7 @@ Fix steps:
 The following Ghost CMS resources are available through this MCP server:
 
 - **Posts**: Articles and content published on your Ghost site.
+- **Pages**: Static content outside Ghost post channels and collections.
 - **Members**: Registered users and subscribers of your site.
 - **Newsletters**: Email newsletters managed and sent via Ghost.
 - **Offers**: Promotional offers and discounts for members.
@@ -279,6 +280,13 @@ This MCP server exposes a comprehensive set of tools for managing your Ghost CMS
 - **Add Post**: Create a new post with title, content, and status.
 - **Edit Post**: Update an existing post by ID.
 - **Delete Post**: Remove a post by ID.
+
+### Pages
+- **Browse Pages**: List static pages with optional filters, pagination, and ordering.
+- **Read Page**: Retrieve a static page by ID or slug.
+- **Add Page**: Create a new static page with title, content, and status.
+- **Edit Page**: Update an existing static page by ID.
+- **Delete Page**: Remove a static page by ID.
 
 ### Members
 - **Browse Members**: List members with filters and pagination.

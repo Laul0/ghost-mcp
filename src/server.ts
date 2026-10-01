@@ -19,6 +19,7 @@ import {
 } from './resources'; // Import resource handlers
 
 import { registerPostTools } from "./tools/posts";
+import { registerPageTools } from "./tools/pages";
 import { registerMemberTools } from "./tools/members";
 import { registerUserTools } from "./tools/users";
 import { registerTagTools } from "./tools/tags";
@@ -66,6 +67,7 @@ function createConfiguredServer(): McpServer {
     server.resource("blog-info", "blog://info", handleBlogInfoResource);
 
     registerPostTools(server);
+    registerPageTools(server);
     registerMemberTools(server);
     registerUserTools(server);
     registerTagTools(server);
