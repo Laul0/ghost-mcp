@@ -1,16 +1,16 @@
 # Ghost MCP Server
 
-A Model Context Protocol (MCP) server for interacting with Ghost CMS through LLM interfaces like Claude, Microsoft Copilot, etc. This server provides secure and comprehensive access to your Ghost blog, leveraging JWT authentication.
+A Model Context Protocol (MCP) server for interacting with Ghost CMS through LLM interfaces like Microsoft Copilot, Claude, etc. This server provides secure and comprehensive access to your Ghost blog, leveraging JWT authentication.
 
 > [!NOTE]
-> This repository is a fork of [MFYDev/ghost-mcp](https://github.com/MFYDev/ghost-mcp) and extends the original connection model with an HTTP MCP server and multi-session support.
+> This repository was initialy forked from [MFYDev/ghost-mcp](https://github.com/MFYDev/ghost-mcp) and extends the original connection model with an HTTP MCP server, additional capabilities and multi-session support.
 
 ![demo](./assets/ghost-mcp-demo.gif)
 
 ## Features
 
-- Secure Ghost Admin API requests with `@tryghost/admin-api`
-- Comprehensive entity access including posts, users, members, tiers, offers, and newsletters
+- Secure Ghost Admin API requests with `@tryghost/admin-api` (because content-api is in read-only)
+- Comprehensive Ghost CMS operations through the [available tools](#available-tools)
 - Advanced search functionality with both fuzzy and exact matching options
 - Detailed, human-readable output for Ghost entities
 - Robust error handling using custom `GhostError` exceptions
@@ -19,7 +19,10 @@ A Model Context Protocol (MCP) server for interacting with Ghost CMS through LLM
 ---
 
 ## Usage
-Copy [docker-compose.yml](docker-compose.yml) to your laptop or server, edit `GHOST_API_URL`, then start it:
+
+### Recommended: Docker with HTTP
+
+Use Docker for a persistent server that can be shared by MCP clients. On the host that will run Ghost MCP, configure `GHOST_API_URL` in [docker-compose.yml](docker-compose.yml), then start the service:
 
 ```bash
 docker compose pull
@@ -54,11 +57,9 @@ services:
     restart: unless-stopped
 ```
 
-> [!NOTE]
-> In HTTP mode, keep `GHOST_API_URL` on the server/container.
-> Each MCP client should provide its own Ghost key so access remains user-scoped.
+For multi-user HTTP deployments, keep `GHOST_API_URL` on the server/container and have each MCP client provide its own Ghost key so access remains user-scoped.
 
-## MCP Configuration (Who Sets What)
+#### MCP Configuration (Who Sets What)
 
 Use this model to avoid shared permissions across users.
 
@@ -70,14 +71,14 @@ Use this model to avoid shared permissions across users.
 | `GHOST_ADMIN_API_KEY` for stdio/npx | Each MCP client user | MCP client env in local/stdio config |
 | `GHOST_API_URL` for stdio/npx | Each MCP client user | MCP client env in local/stdio config |
 
-### Recommended for multi-user deployments
+##### Recommended for multi-user deployments
 
 - Run the MCP server in HTTP mode behind Docker/reverse proxy.
 - Keep only `GHOST_API_URL` in server/container config.
 - Require every MCP client to send its own Ghost admin key via headers.
 - Do not set a shared `GHOST_ADMIN_API_KEY` in compose for HTTP multi-user setups.
 
-### Remote HTTPS (no SSH)
+##### Remote HTTPS (no SSH)
 
 This image supports HTTP MCP on `/` by default.
 
@@ -89,33 +90,13 @@ Quick rule:
 - Local machine: use HTTP (`http://localhost:3000/`) or stdio (`MCP_TRANSPORT=stdio`).
 - Remote HTTPS: same MCP endpoint, but served behind TLS by your reverse proxy.
 
-For local development, you can build your own image instead:
+For local development, build your own image instead:
 
 ```bash
 docker build -t ghost-mcp:local .
 ```
 
-### Original npx usage (still supported, stdio/local)
-
-To use this with MCP clients (for example Claude Desktop), add this to your `claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "ghost-mcp": {
-      "command": "npx",
-      "args": ["-y", "@fanyangmeng/ghost-mcp"],
-      "env": {
-        "GHOST_API_URL": "https://yourblog.com",
-        "GHOST_ADMIN_API_KEY": "your_admin_api_key",
-        "GHOST_API_VERSION": "v5.0"
-      }
-    }
-  }
-}
-```
-
-### Using HTTP Docker MCP clients
+##### Configure HTTP MCP clients
 
 When running this server over HTTP (`MCP_TRANSPORT=http`), configure your client to connect to:
 
@@ -130,7 +111,56 @@ When running this server over HTTP (`MCP_TRANSPORT=http`), configure your client
 >
 > Legacy compatibility: `x-ghost-admin-api-key` is also accepted.
 
-#### Claude (Claude Code / Claude Desktop)
+###### GitHub Copilot CLI
+
+Option A (interactive in Copilot CLI):
+
+```text
+/mcp add
+```
+
+Then choose:
+- Server Name: `ghost-mcp`
+- Server Type: `HTTP`
+- URL: `http://localhost:3000/`
+- HTTP Headers: `{ "Authorization": "Bearer your-id:your-secret", "x-ghost-api-version": "v5.0" }`
+- Tools: `*` (or restrict to specific tool names)
+
+Option B (command line):
+
+```bash
+copilot mcp add ghost-mcp \
+  --type http \
+  --url http://localhost:3000/ \
+  --header "Authorization=Bearer your-id:your-secret" \
+  --header "x-ghost-api-version=v5.0" \
+  --tools "*"
+```
+
+###### VS Code (Copilot Chat Agent mode)
+
+Create or edit `.vscode/mcp.json`:
+
+```json
+{
+  "servers": {
+    "ghost-mcp": {
+      "type": "http",
+      "url": "http://localhost:3000/",
+      "requestInit": {
+        "headers": {
+          "Authorization": "Bearer your-id:your-secret",
+          "x-ghost-api-version": "v5.0"
+        }
+      }
+    }
+  }
+}
+```
+
+Then in Copilot Chat, switch to Agent mode and enable tools for `ghost-mcp`.
+
+###### Claude (Claude Code / Claude Desktop)
 
 Claude Code (CLI):
 
@@ -166,56 +196,29 @@ Claude Desktop (HTTP-capable versions):
 }
 ```
 
-If your Claude Desktop version only supports stdio/local MCP entries, use the `npx` configuration shown above.
+If your Claude Desktop version only supports stdio/local MCP entries, use the [npx configuration below](#optional-npx-for-local-stdio).
 
-#### GitHub Copilot CLI
+### Optional: `npx` for local stdio
 
-Option A (interactive in Copilot CLI):
+Use this option for clients that only support local stdio connections (for example, older Claude Desktop versions). The Docker HTTP/HTTPS setup above is recommended for persistent or remote use.
 
-```text
-/mcp add
-```
-
-Then choose:
-- Server Name: `ghost-mcp`
-- Server Type: `HTTP`
-- URL: `http://localhost:3000/`
-- HTTP Headers: `{ "Authorization": "Bearer your-id:your-secret", "x-ghost-api-version": "v5.0" }`
-- Tools: `*` (or restrict to specific tool names)
-
-Option B (command line):
-
-```bash
-copilot mcp add ghost-mcp \
-  --type http \
-  --url http://localhost:3000/ \
-  --header "Authorization=Bearer your-id:your-secret" \
-  --header "x-ghost-api-version=v5.0" \
-  --tools "*"
-```
-
-#### VS Code (Copilot Chat Agent mode)
-
-Create or edit `.vscode/mcp.json`:
+Add this to your `claude_desktop_config.json`:
 
 ```json
 {
-  "servers": {
+  "mcpServers": {
     "ghost-mcp": {
-      "type": "http",
-      "url": "http://localhost:3000/",
-      "requestInit": {
-        "headers": {
-          "Authorization": "Bearer your-id:your-secret",
-          "x-ghost-api-version": "v5.0"
-        }
+      "command": "npx",
+      "args": ["-y", "@Laul0/ghost-mcp"],
+      "env": {
+        "GHOST_API_URL": "https://yourblog.com",
+        "GHOST_ADMIN_API_KEY": "your_admin_api_key",
+        "GHOST_API_VERSION": "v5.0"
       }
     }
   }
 }
 ```
-
-Then in Copilot Chat, switch to Agent mode and enable tools for `ghost-mcp`.
 
 ### Troubleshooting HTTP MCP sessions
 
@@ -254,22 +257,11 @@ Fix steps:
 
 ---
 
-## Available Resources
+## MCP Resources
 
-The following Ghost CMS resources are available through this MCP server:
+The server also registers MCP resource URIs, but their handlers currently return placeholder text instead of Ghost data. Use the tools below for working with your Ghost site.
 
-- **Posts**: Articles and content published on your Ghost site.
-- **Pages**: Static content outside Ghost post channels and collections.
-- **Members**: Registered users and subscribers of your site.
-- **Newsletters**: Email newsletters managed and sent via Ghost.
-- **Offers**: Promotional offers and discounts for members.
-- **Invites**: Invitations for new users or staff to join your Ghost site.
-- **Roles**: User roles and permissions within the Ghost admin.
-- **Tags**: Organizational tags for posts and content.
-- **Tiers**: Subscription tiers and plans for members.
-- **Users**: Admin users and staff accounts.
-- **Webhooks**: Automated event notifications to external services.
-
+<a id="available-tools"></a>
 ## Available Tools
 
 This MCP server exposes a comprehensive set of tools for managing your Ghost CMS via the Model Context Protocol. Each resource provides a set of operations, typically including browsing, reading, adding, editing, and deleting entities.
@@ -344,7 +336,6 @@ This MCP server exposes a comprehensive set of tools for managing your Ghost CMS
 - **Delete Webhook**: Remove a webhook.
 
 > Each tool is accessible via the MCP protocol and can be invoked from compatible clients. For detailed parameter schemas and usage, see the source code in `src/tools/`.
-
 
 ## Error Handling
 
