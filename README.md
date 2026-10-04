@@ -5,7 +5,9 @@ A Model Context Protocol (MCP) server for interacting with Ghost CMS through LLM
 > [!NOTE]
 > This repository was initialy forked from [MFYDev/ghost-mcp](https://github.com/MFYDev/ghost-mcp) and extends the original connection model with an HTTP MCP server, additional capabilities and multi-session support.
 
-![demo](./assets/ghost-mcp-demo.gif)
+<div align="center">
+  <img src="./assets/copilot-ghost-mcp.gif" alt="demo" width="90%" />
+</div>
 
 ## Features
 
