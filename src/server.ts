@@ -202,6 +202,15 @@ async function startHttpServer() {
             const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
 
             if (url.pathname === '/health') {
+                // Log health check without triggering the regular request logging
+                const durationMs = Date.now() - startedAt;
+                logHttpEvent('response', {
+                    method: requestMethod,
+                    path: requestPath,
+                    sessionId: requestSessionId || null,
+                    statusCode: 200,
+                    durationMs,
+                });
                 res.writeHead(200, { 'content-type': 'text/plain' });
                 res.end('ok');
                 return;
