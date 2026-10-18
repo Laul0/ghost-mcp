@@ -1,0 +1,33 @@
+{
+  "repository": "TryGhost/Ghost",
+  "branch": "main",
+  "sources": {
+    "admin_routes": {
+      "path": "ghost/core/server/web/api/endpoints/admin/routes.js",
+      "commit": "6571bf8d130af2cdd59503ec3a96becdae32672b"
+    },
+    "admin_controllers": {
+      "path": "ghost/core/server/api/endpoints",
+      "commit": "bbbd6500b935e89a4102b5aabdcc099e44a99d0b"
+    },
+    "admin_schemas": {
+      "path": "packages/admin-api-schema/src/schemas",
+      "commit": "6571bf8d130af2cdd59503ec3a96becdae32672b"
+    },
+    "version_compatibility": {
+      "path": "ghost/core/server/web/api/middleware/api-version-compatibility/mw-version-rewrites.js",
+      "commit": "6571bf8d130af2cdd59503ec3a96becdae32672b"
+    }
+  },
+  "additional_repositories": {
+    "TryGhost/SDK": {
+      "branch": "main",
+      "sources": {
+        "admin_api_client": {
+          "path": "packages/admin-api",
+          "commit": "b7aff913097b70e47ed695a539b74a6e1c61ba64"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '09:00'
+      timezone: Europe/Paris
+    allow:
+      - dependency-name: '@tryghost/admin-api'
+        dependency-type: production
+    open-pull-requests-limit: 1
+    labels:
+      - dependencies
+      - ghost-api
+    commit-message:
+      prefix: chore
