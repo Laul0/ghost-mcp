@@ -4,11 +4,11 @@
   "sources": {
     "admin_routes": {
       "path": "ghost/core/server/web/api/endpoints/admin/routes.js",
-      "commit": "6571bf8d130af2cdd59503ec3a96becdae32672b"
+      "commit": "9bf4f539186988fa7f4a6e8802f33669fc11e83f"
     },
     "admin_controllers": {
       "path": "ghost/core/server/api/endpoints",
-      "commit": "bbbd6500b935e89a4102b5aabdcc099e44a99d0b"
+      "commit": "9bf4f539186988fa7f4a6e8802f33669fc11e83f"
     },
     "admin_schemas": {
       "path": "packages/admin-api-schema/src/schemas",
