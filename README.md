@@ -22,6 +22,23 @@ A Model Context Protocol (MCP) server for interacting with Ghost CMS through LLM
 
 ## Usage
 
+### Confirmation for deletions
+
+Every delete tool requests explicit confirmation through MCP form elicitation,
+identifying the resource and ID and describing the irreversible effects. The
+client must support elicitation and present the prompt to the user; a decline,
+cancellation, timeout, or missing confirmation blocks the deletion. As with
+any MCP client, this safeguard depends on the client actually obtaining user
+consent. Other write actions are not covered by this safeguard.
+
+Clients without form elicitation cannot delete by default, including stateless
+HTTP clients. An operator can set `GHOST_ALLOW_UNCONFIRMED_DELETES=true` in the
+server environment to allow those clients to delete without confirmation. This
+weakens the safeguard for **all** such clients of that server; do not enable it
+on shared servers unless that risk is acceptable. Clients that support form
+elicitation still require confirmation. No model-supplied `force` argument can
+bypass the check.
+
 ### Recommended: Docker with HTTP
 
 Use Docker for a persistent server that can be shared by MCP clients. On the host that will run Ghost MCP, configure `GHOST_API_URL` in [docker-compose.yml](docker-compose.yml), then start the service:

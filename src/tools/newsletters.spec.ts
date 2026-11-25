@@ -23,7 +23,7 @@ describe('newsletters tools', () => {
     it('rejects newsletters_add when the required name field is missing', async () => {
         const { client } = await createConnectedClient(registerNewsletterTools);
 
-        await expect(client.callTool({ name: 'newsletters_add', arguments: {} })).rejects.toThrow(/Invalid arguments/);
+        await expect(client.callTool({ name: 'newsletters_add', arguments: {} })).resolves.toMatchObject({ isError: true, content: [{ type: "text", text: expect.stringMatching(/Invalid arguments/) }] });
         expect(newslettersMock.add).not.toHaveBeenCalled();
     });
 
@@ -39,14 +39,14 @@ describe('newsletters tools', () => {
     it('rejects newsletters_edit when the required id field is missing', async () => {
         const { client } = await createConnectedClient(registerNewsletterTools);
 
-        await expect(client.callTool({ name: 'newsletters_edit', arguments: { name: 'x' } })).rejects.toThrow(/Invalid arguments/);
+        await expect(client.callTool({ name: 'newsletters_edit', arguments: { name: 'x' } })).resolves.toMatchObject({ isError: true, content: [{ type: "text", text: expect.stringMatching(/Invalid arguments/) }] });
         expect(newslettersMock.edit).not.toHaveBeenCalled();
     });
 
     it('rejects newsletters_delete when the required id field is missing', async () => {
         const { client } = await createConnectedClient(registerNewsletterTools);
 
-        await expect(client.callTool({ name: 'newsletters_delete', arguments: {} })).rejects.toThrow(/Invalid arguments/);
+        await expect(client.callTool({ name: 'newsletters_delete', arguments: {} })).resolves.toMatchObject({ isError: true, content: [{ type: "text", text: expect.stringMatching(/Invalid arguments/) }] });
         expect(newslettersMock.delete).not.toHaveBeenCalled();
     });
 });

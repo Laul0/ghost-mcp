@@ -2,6 +2,7 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ghostApiClient } from "../ghostApi";
+import { confirmDelete, DELETE_CONFIRMATION_DESCRIPTION, DELETE_ANNOTATIONS } from "./confirmDelete";
 
 // Parameter schemas as ZodRawShape (object literals)
 const addParams = {
@@ -63,9 +64,11 @@ export function registerWebhookTools(server: McpServer) {
   // Delete webhook
   server.tool(
     "webhooks_delete",
-    "Permanently delete a Ghost webhook by ID. Returns a plain-text confirmation message; this action cannot be undone and stops all future notifications for that webhook. Use this once you have the ID from when the webhook was created (there is no browse/read endpoint), e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\".",
+    "Permanently delete a Ghost webhook by ID. Returns a plain-text confirmation message; this action cannot be undone and stops all future notifications for that webhook. Use this once you have the ID from when the webhook was created (there is no browse/read endpoint), e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\"." + DELETE_CONFIRMATION_DESCRIPTION,
     deleteParams,
+    DELETE_ANNOTATIONS,
     async (args, _extra) => {
+      await confirmDelete(server, "webhook", args.id, _extra);
       await ghostApiClient.webhooks.delete(args);
       return {
         content: [

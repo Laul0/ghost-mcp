@@ -346,9 +346,11 @@ async function startHttpServer() {
                     // initialize handshake. The SDK's StreamableHTTPServerTransport otherwise
                     // rejects any request as "Server not initialized" until it has processed an
                     // "initialize" message on that same transport instance. Since this fallback
-                    // deliberately skips session/handshake tracking, mark it pre-initialized so
-                    // the request can be handled directly.
-                    (statelessTransport as unknown as { _initialized: boolean })._initialized = true;
+                    // deliberately skips session/handshake tracking, mark the SDK's underlying
+                    // web-standard transport pre-initialized so the request can be handled.
+                    (statelessTransport as unknown as {
+                        _webStandardTransport: { _initialized: boolean }
+                    })._webStandardTransport._initialized = true;
 
                     res.on('close', () => {
                         statelessTransport.close().catch(() => undefined);

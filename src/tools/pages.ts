@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ghostApiClient } from "../ghostApi";
+import { confirmDelete, DELETE_CONFIRMATION_DESCRIPTION, DELETE_ANNOTATIONS } from "./confirmDelete";
 
 const browseParams = {
   filter: z.string().optional().describe("Ghost NQL filter expression to narrow the list of pages, e.g. \"status:published\"."),
@@ -111,9 +112,11 @@ export function registerPageTools(server: McpServer) {
 
   server.tool(
     "pages_delete",
-    "Permanently delete a Ghost static page by ID. Returns a plain-text confirmation; this action cannot be undone. Confirm the page with pages_browse or pages_read first, e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\".",
+    "Permanently delete a Ghost static page by ID. Returns a plain-text confirmation; this action cannot be undone. Confirm the page with pages_browse or pages_read first, e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\"." + DELETE_CONFIRMATION_DESCRIPTION,
     deleteParams,
-    async (args) => {
+    DELETE_ANNOTATIONS,
+    async (args, extra) => {
+      await confirmDelete(server, "page", args.id, extra);
       await ghostApiClient.pages.delete(args);
       return { content: [{ type: "text", text: `Page with id ${args.id} deleted.` }] };
     }

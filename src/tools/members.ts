@@ -2,6 +2,7 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ghostApiClient } from "../ghostApi";
+import { confirmDelete, DELETE_CONFIRMATION_DESCRIPTION, DELETE_ANNOTATIONS } from "./confirmDelete";
 
 // Parameter schemas as ZodRawShape (object literals)
 const browseParams = {
@@ -109,9 +110,11 @@ export function registerMemberTools(server: McpServer) {
   // Delete member
   server.tool(
     "members_delete",
-    "Permanently delete a Ghost member by ID. Returns a plain-text confirmation message; this action cannot be undone and cancels any active subscriptions. Use this only after confirming the correct member via members_browse or members_read, e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\".",
+    "Permanently delete a Ghost member by ID. Returns a plain-text confirmation message; this action cannot be undone and cancels any active subscriptions. Use this only after confirming the correct member via members_browse or members_read, e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\"." + DELETE_CONFIRMATION_DESCRIPTION,
     deleteParams,
+    DELETE_ANNOTATIONS,
     async (args, _extra) => {
+      await confirmDelete(server, "member", args.id, _extra);
       await ghostApiClient.members.delete(args);
       return {
         content: [

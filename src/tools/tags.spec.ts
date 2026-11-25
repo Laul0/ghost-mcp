@@ -23,7 +23,7 @@ describe('tags tools', () => {
     it('rejects tags_add when the required name field is missing', async () => {
         const { client } = await createConnectedClient(registerTagTools);
 
-        await expect(client.callTool({ name: 'tags_add', arguments: {} })).rejects.toThrow(/Invalid arguments/);
+        await expect(client.callTool({ name: 'tags_add', arguments: {} })).resolves.toMatchObject({ isError: true, content: [{ type: "text", text: expect.stringMatching(/Invalid arguments/) }] });
         expect(tagsMock.add).not.toHaveBeenCalled();
     });
 
@@ -39,14 +39,14 @@ describe('tags tools', () => {
     it('rejects tags_edit when the required id field is missing', async () => {
         const { client } = await createConnectedClient(registerTagTools);
 
-        await expect(client.callTool({ name: 'tags_edit', arguments: { name: 'x' } })).rejects.toThrow(/Invalid arguments/);
+        await expect(client.callTool({ name: 'tags_edit', arguments: { name: 'x' } })).resolves.toMatchObject({ isError: true, content: [{ type: "text", text: expect.stringMatching(/Invalid arguments/) }] });
         expect(tagsMock.edit).not.toHaveBeenCalled();
     });
 
     it('rejects tags_delete when the required id field is missing', async () => {
         const { client } = await createConnectedClient(registerTagTools);
 
-        await expect(client.callTool({ name: 'tags_delete', arguments: {} })).rejects.toThrow(/Invalid arguments/);
+        await expect(client.callTool({ name: 'tags_delete', arguments: {} })).resolves.toMatchObject({ isError: true, content: [{ type: "text", text: expect.stringMatching(/Invalid arguments/) }] });
         expect(tagsMock.delete).not.toHaveBeenCalled();
     });
 });
