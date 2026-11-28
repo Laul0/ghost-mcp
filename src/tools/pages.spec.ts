@@ -36,7 +36,7 @@ describe('pages tools', () => {
     it('rejects pages_add when title is missing', async () => {
         const { client } = await createConnectedClient(registerPageTools);
 
-        await expect(client.callTool({ name: 'pages_add', arguments: {} })).rejects.toThrow(/Invalid arguments/);
+        await expect(client.callTool({ name: 'pages_add', arguments: {} })).resolves.toMatchObject({ isError: true, content: [{ type: "text", text: expect.stringMatching(/Invalid arguments/) }] });
         expect(pagesMock.add).not.toHaveBeenCalled();
     });
 
@@ -58,7 +58,7 @@ describe('pages tools', () => {
     it('requires id and updated_at when editing a page', async () => {
         const { client } = await createConnectedClient(registerPageTools);
 
-        await expect(client.callTool({ name: 'pages_edit', arguments: { title: 'About' } })).rejects.toThrow(/Invalid arguments/);
+        await expect(client.callTool({ name: 'pages_edit', arguments: { title: 'About' } })).resolves.toMatchObject({ isError: true, content: [{ type: "text", text: expect.stringMatching(/Invalid arguments/) }] });
         expect(pagesMock.edit).not.toHaveBeenCalled();
     });
 
@@ -72,7 +72,9 @@ describe('pages tools', () => {
     });
 
     it('deletes a page by id and returns confirmation', async () => {
-        const { client } = await createConnectedClient(registerPageTools);
+        const { client } = await createConnectedClient(registerPageTools, async () => ({
+            action: 'accept', content: { confirm: true },
+        }));
         pagesMock.delete.mockResolvedValue(undefined);
 
         const result = await client.callTool({ name: 'pages_delete', arguments: { id: 'page-1' } });

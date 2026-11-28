@@ -23,7 +23,7 @@ describe('tiers tools', () => {
     it('rejects tiers_add when the required name field is missing', async () => {
         const { client } = await createConnectedClient(registerTierTools);
 
-        await expect(client.callTool({ name: 'tiers_add', arguments: {} })).rejects.toThrow(/Invalid arguments/);
+        await expect(client.callTool({ name: 'tiers_add', arguments: {} })).resolves.toMatchObject({ isError: true, content: [{ type: "text", text: expect.stringMatching(/Invalid arguments/) }] });
         expect(tiersMock.add).not.toHaveBeenCalled();
     });
 
@@ -39,14 +39,14 @@ describe('tiers tools', () => {
     it('rejects tiers_edit when the required id field is missing', async () => {
         const { client } = await createConnectedClient(registerTierTools);
 
-        await expect(client.callTool({ name: 'tiers_edit', arguments: { name: 'x' } })).rejects.toThrow(/Invalid arguments/);
+        await expect(client.callTool({ name: 'tiers_edit', arguments: { name: 'x' } })).resolves.toMatchObject({ isError: true, content: [{ type: "text", text: expect.stringMatching(/Invalid arguments/) }] });
         expect(tiersMock.edit).not.toHaveBeenCalled();
     });
 
     it('rejects tiers_delete when the required id field is missing', async () => {
         const { client } = await createConnectedClient(registerTierTools);
 
-        await expect(client.callTool({ name: 'tiers_delete', arguments: {} })).rejects.toThrow(/Invalid arguments/);
+        await expect(client.callTool({ name: 'tiers_delete', arguments: {} })).resolves.toMatchObject({ isError: true, content: [{ type: "text", text: expect.stringMatching(/Invalid arguments/) }] });
         expect(tiersMock.delete).not.toHaveBeenCalled();
     });
 });

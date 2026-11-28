@@ -33,7 +33,7 @@ describe('offers tools', () => {
     it('rejects offers_add when required fields are missing', async () => {
         const { client } = await createConnectedClient(registerOfferTools);
 
-        await expect(client.callTool({ name: 'offers_add', arguments: {} })).rejects.toThrow(/Invalid arguments/);
+        await expect(client.callTool({ name: 'offers_add', arguments: {} })).resolves.toMatchObject({ isError: true, content: [{ type: "text", text: expect.stringMatching(/Invalid arguments/) }] });
         expect(offersMock.add).not.toHaveBeenCalled();
     });
 
@@ -49,14 +49,14 @@ describe('offers tools', () => {
     it('rejects offers_edit when the required id field is missing', async () => {
         const { client } = await createConnectedClient(registerOfferTools);
 
-        await expect(client.callTool({ name: 'offers_edit', arguments: { name: 'x' } })).rejects.toThrow(/Invalid arguments/);
+        await expect(client.callTool({ name: 'offers_edit', arguments: { name: 'x' } })).resolves.toMatchObject({ isError: true, content: [{ type: "text", text: expect.stringMatching(/Invalid arguments/) }] });
         expect(offersMock.edit).not.toHaveBeenCalled();
     });
 
     it('rejects offers_delete when the required id field is missing', async () => {
         const { client } = await createConnectedClient(registerOfferTools);
 
-        await expect(client.callTool({ name: 'offers_delete', arguments: {} })).rejects.toThrow(/Invalid arguments/);
+        await expect(client.callTool({ name: 'offers_delete', arguments: {} })).resolves.toMatchObject({ isError: true, content: [{ type: "text", text: expect.stringMatching(/Invalid arguments/) }] });
         expect(offersMock.delete).not.toHaveBeenCalled();
     });
 });

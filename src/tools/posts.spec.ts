@@ -28,7 +28,7 @@ describe('posts tools', () => {
     it('rejects posts_add when the required title field is missing', async () => {
         const { client } = await createConnectedClient(registerPostTools);
 
-        await expect(client.callTool({ name: 'posts_add', arguments: {} })).rejects.toThrow(/Invalid arguments/);
+        await expect(client.callTool({ name: 'posts_add', arguments: {} })).resolves.toMatchObject({ isError: true, content: [{ type: "text", text: expect.stringMatching(/Invalid arguments/) }] });
         expect(postsMock.add).not.toHaveBeenCalled();
     });
 
@@ -75,7 +75,7 @@ describe('posts tools', () => {
     it('rejects posts_edit when required id/updated_at fields are missing', async () => {
         const { client } = await createConnectedClient(registerPostTools);
 
-        await expect(client.callTool({ name: 'posts_edit', arguments: { title: 'x' } })).rejects.toThrow(/Invalid arguments/);
+        await expect(client.callTool({ name: 'posts_edit', arguments: { title: 'x' } })).resolves.toMatchObject({ isError: true, content: [{ type: "text", text: expect.stringMatching(/Invalid arguments/) }] });
         expect(postsMock.edit).not.toHaveBeenCalled();
     });
 });

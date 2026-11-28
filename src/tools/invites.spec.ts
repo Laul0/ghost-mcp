@@ -30,7 +30,7 @@ describe('invites tools', () => {
     it('rejects invites_add when required role_id/email fields are missing', async () => {
         const { client } = await createConnectedClient(registerInviteTools);
 
-        await expect(client.callTool({ name: 'invites_add', arguments: {} })).rejects.toThrow(/Invalid arguments/);
+        await expect(client.callTool({ name: 'invites_add', arguments: {} })).resolves.toMatchObject({ isError: true, content: [{ type: "text", text: expect.stringMatching(/Invalid arguments/) }] });
         expect(invitesMock.add).not.toHaveBeenCalled();
     });
 
@@ -49,7 +49,7 @@ describe('invites tools', () => {
     it('rejects invites_delete when the required id field is missing', async () => {
         const { client } = await createConnectedClient(registerInviteTools);
 
-        await expect(client.callTool({ name: 'invites_delete', arguments: {} })).rejects.toThrow(/Invalid arguments/);
+        await expect(client.callTool({ name: 'invites_delete', arguments: {} })).resolves.toMatchObject({ isError: true, content: [{ type: "text", text: expect.stringMatching(/Invalid arguments/) }] });
         expect(invitesMock.delete).not.toHaveBeenCalled();
     });
 });

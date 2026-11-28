@@ -31,7 +31,7 @@ describe('users tools', () => {
     it('rejects users_edit when the required id field is missing', async () => {
         const { client } = await createConnectedClient(registerUserTools);
 
-        await expect(client.callTool({ name: 'users_edit', arguments: { name: 'x' } })).rejects.toThrow(/Invalid arguments/);
+        await expect(client.callTool({ name: 'users_edit', arguments: { name: 'x' } })).resolves.toMatchObject({ isError: true, content: [{ type: "text", text: expect.stringMatching(/Invalid arguments/) }] });
         expect(usersMock.edit).not.toHaveBeenCalled();
     });
 
@@ -47,7 +47,7 @@ describe('users tools', () => {
     it('rejects users_delete when the required id field is missing', async () => {
         const { client } = await createConnectedClient(registerUserTools);
 
-        await expect(client.callTool({ name: 'users_delete', arguments: {} })).rejects.toThrow(/Invalid arguments/);
+        await expect(client.callTool({ name: 'users_delete', arguments: {} })).resolves.toMatchObject({ isError: true, content: [{ type: "text", text: expect.stringMatching(/Invalid arguments/) }] });
         expect(usersMock.delete).not.toHaveBeenCalled();
     });
 });

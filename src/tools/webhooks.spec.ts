@@ -21,7 +21,7 @@ describe('webhooks tools', () => {
     it('rejects webhooks_add when required event/target_url fields are missing', async () => {
         const { client } = await createConnectedClient(registerWebhookTools);
 
-        await expect(client.callTool({ name: 'webhooks_add', arguments: {} })).rejects.toThrow(/Invalid arguments/);
+        await expect(client.callTool({ name: 'webhooks_add', arguments: {} })).resolves.toMatchObject({ isError: true, content: [{ type: "text", text: expect.stringMatching(/Invalid arguments/) }] });
         expect(webhooksMock.add).not.toHaveBeenCalled();
     });
 
@@ -40,14 +40,14 @@ describe('webhooks tools', () => {
     it('rejects webhooks_edit when the required id field is missing', async () => {
         const { client } = await createConnectedClient(registerWebhookTools);
 
-        await expect(client.callTool({ name: 'webhooks_edit', arguments: { event: 'post.published' } })).rejects.toThrow(/Invalid arguments/);
+        await expect(client.callTool({ name: 'webhooks_edit', arguments: { event: 'post.published' } })).resolves.toMatchObject({ isError: true, content: [{ type: "text", text: expect.stringMatching(/Invalid arguments/) }] });
         expect(webhooksMock.edit).not.toHaveBeenCalled();
     });
 
     it('rejects webhooks_delete when the required id field is missing', async () => {
         const { client } = await createConnectedClient(registerWebhookTools);
 
-        await expect(client.callTool({ name: 'webhooks_delete', arguments: {} })).rejects.toThrow(/Invalid arguments/);
+        await expect(client.callTool({ name: 'webhooks_delete', arguments: {} })).resolves.toMatchObject({ isError: true, content: [{ type: "text", text: expect.stringMatching(/Invalid arguments/) }] });
         expect(webhooksMock.delete).not.toHaveBeenCalled();
     });
 });
