@@ -64,7 +64,7 @@ export function registerWebhookTools(server: McpServer) {
   // Delete webhook
   server.tool(
     "webhooks_delete",
-    "Permanently delete a Ghost webhook by ID. Returns a plain-text confirmation message; this action cannot be undone and stops all future notifications for that webhook. Use this once you have the ID from when the webhook was created (there is no browse/read endpoint), e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\"." + DELETE_CONFIRMATION_DESCRIPTION,
+    "Permanently delete a webhook by ID, stopping its notifications. Use the ID from creation; no browse/read tool exists, e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\". Returns a text confirmation." + DELETE_CONFIRMATION_DESCRIPTION,
     deleteParams,
     DELETE_ANNOTATIONS,
     async (args, _extra) => {

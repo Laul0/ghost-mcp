@@ -38,7 +38,7 @@ describe("tool descriptions", () => {
 
         const { tools } = await client.listTools();
         expect(tools.find(tool => tool.name === `${name}_browse`)?.description)
-            .toContain("does not include pagination metadata");
+            .toContain("Pagination metadata is omitted");
         const result = await client.callTool({ name: `${name}_browse`, arguments: { page: 1, limit: 1 } });
         expect(result).toMatchObject({
             content: [{ type: "text", text: JSON.stringify([{ id: "target-1" }], null, 2) }],

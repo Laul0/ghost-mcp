@@ -109,7 +109,7 @@ export function registerTagTools(server: McpServer) {
   // Delete tag
   server.tool(
     "tags_delete",
-    "Permanently delete a Ghost tag by ID. Returns a plain-text confirmation message; this action cannot be undone and removes the tag from any posts using it. Use this only after confirming the correct tag via tags_browse or tags_read, e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\"." + DELETE_CONFIRMATION_DESCRIPTION,
+    "Permanently delete a tag by ID, removing it from posts. Verify it via tags_browse or tags_read, e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\". Returns a text confirmation." + DELETE_CONFIRMATION_DESCRIPTION,
     deleteParams,
     DELETE_ANNOTATIONS,
     async (args, _extra) => {

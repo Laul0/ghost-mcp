@@ -24,7 +24,7 @@ export function registerInviteTools(server: McpServer) {
   // Browse invites
   server.tool(
     "invites_browse",
-    "List pending Ghost staff user invitations. Returns an array of invite objects (empty array if none are pending), each including id, email, and role_id. Use this to check whether someone has already been invited before sending a new invite, e.g. limit: 20." + UNSUPPORTED_RESOURCE_DESCRIPTION,
+    "List pending staff invitations to check for an existing invite, e.g. limit: 20. Returns an invite array with IDs, emails and roles." + UNSUPPORTED_RESOURCE_DESCRIPTION,
     browseParams,
     async (args, _extra) => {
       const invites = await ghostApiClient.invites.browse(args);
@@ -42,7 +42,7 @@ export function registerInviteTools(server: McpServer) {
   // Add invite
   server.tool(
     "invites_add",
-    "Invite a new staff user to Ghost by email with a given role. Returns the created invite object; the recipient must accept the emailed invitation before becoming an active user. Fails if the email already belongs to an active user or already has a pending invite. Example: email: \"jane@example.com\", role_id: \"64f1a2b3c4d5e6f7a8b9c0d1\"." + UNSUPPORTED_RESOURCE_DESCRIPTION,
+    "Email a staff invitation with a role; returns the invite. The recipient must accept it, and an existing user or pending invite causes an error. Example: email: \"jane@example.com\", role_id: \"64f1a2b3c4d5e6f7a8b9c0d1\"." + UNSUPPORTED_RESOURCE_DESCRIPTION,
     addParams,
     async (args, _extra) => {
       const invite = await ghostApiClient.invites.add(args);
@@ -60,7 +60,7 @@ export function registerInviteTools(server: McpServer) {
   // Delete invite
   server.tool(
     "invites_delete",
-    "Revoke/delete a pending Ghost staff user invitation by ID. Returns a plain-text confirmation message; this action cannot be undone and the invite link stops working immediately. Use this only after confirming the correct invite via invites_browse, e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\"." + DELETE_CONFIRMATION_DESCRIPTION + UNSUPPORTED_RESOURCE_DESCRIPTION,
+    "Revoke a pending staff invitation by ID, disabling its link. Verify it via invites_browse, e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\". Returns a text confirmation; revocation cannot be undone." + DELETE_CONFIRMATION_DESCRIPTION + UNSUPPORTED_RESOURCE_DESCRIPTION,
     deleteParams,
     DELETE_ANNOTATIONS,
     async (args, _extra) => {

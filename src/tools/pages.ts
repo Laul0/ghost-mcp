@@ -113,7 +113,7 @@ export function registerPageTools(server: McpServer) {
 
   server.tool(
     "pages_delete",
-    "Permanently delete a Ghost static page by ID. Returns a plain-text confirmation; this action cannot be undone. Confirm the page with pages_browse or pages_read first, e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\"." + DELETE_CONFIRMATION_DESCRIPTION,
+    "Permanently delete a page by ID. Verify it via pages_browse or pages_read, e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\". Returns a text confirmation." + DELETE_CONFIRMATION_DESCRIPTION,
     deleteParams,
     DELETE_ANNOTATIONS,
     async (args, extra) => {

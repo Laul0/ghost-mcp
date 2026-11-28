@@ -134,7 +134,7 @@ export function registerNewsletterTools(server: McpServer) {
   // Delete newsletter
   server.tool(
     "newsletters_delete",
-    "Permanently delete a Ghost newsletter by ID. Returns a plain-text confirmation message; this action cannot be undone and unsubscribes all members from it. Use this only after confirming the correct newsletter via newsletters_browse or newsletters_read, e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\"." + DELETE_CONFIRMATION_DESCRIPTION,
+    "Permanently delete a newsletter by ID, unsubscribing all members. Verify it via newsletters_browse or newsletters_read, e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\". Returns a text confirmation." + DELETE_CONFIRMATION_DESCRIPTION,
     deleteParams,
     DELETE_ANNOTATIONS,
     async (args, _extra) => {

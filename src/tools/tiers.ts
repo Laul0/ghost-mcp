@@ -49,7 +49,7 @@ export function registerTierTools(server: McpServer) {
   // Browse tiers
   server.tool(
     "tiers_browse",
-    "List Ghost membership tiers with optional filtering, pagination, and ordering. Returns an array of tier objects (empty array if none match), each including id, name, and pricing. Use this to review existing tiers before creating an offer or editing a specific tier, e.g. limit: 10." + UNSUPPORTED_RESOURCE_DESCRIPTION,
+    "List membership tiers to find IDs and pricing before editing or creating offers, e.g. limit: 10. Returns a tier array." + UNSUPPORTED_RESOURCE_DESCRIPTION,
     browseParams,
     async (args, _extra) => {
       const tiers = await ghostApiClient.tiers.browse(args);
@@ -67,7 +67,7 @@ export function registerTierTools(server: McpServer) {
   // Read tier
   server.tool(
     "tiers_read",
-    "Retrieve a single Ghost membership tier by ID or slug. Returns the full tier object including pricing and benefits, or an error if no tier matches. Use this once you know the ID or slug (e.g. from tiers_browse) and need full details, e.g. slug: \"gold\"." + UNSUPPORTED_RESOURCE_DESCRIPTION,
+    "Retrieve a membership tier by ID or slug to inspect pricing and benefits, e.g. slug: \"gold\". Returns the tier or an error." + UNSUPPORTED_RESOURCE_DESCRIPTION,
     readParams,
     async (args, _extra) => {
       const tier = await ghostApiClient.tiers.read(args);
@@ -85,7 +85,7 @@ export function registerTierTools(server: McpServer) {
   // Add tier
   server.tool(
     "tiers_add",
-    "Create a new Ghost membership tier. Returns the created tier object including its generated ID. Only name is required; pricing and benefits are optional. Use this to introduce a new paid membership level before attaching offers to it, e.g. name: \"Gold\", monthly_price: 500, currency: \"usd\"." + UNSUPPORTED_RESOURCE_DESCRIPTION,
+    "Create a membership tier before attaching offers. Only name is required; pricing and benefits are optional. Example: name: \"Gold\", monthly_price: 500, currency: \"usd\". Returns the new tier." + UNSUPPORTED_RESOURCE_DESCRIPTION,
     addParams,
     async (args, _extra) => {
       const tier = await ghostApiClient.tiers.add(args);
@@ -103,7 +103,7 @@ export function registerTierTools(server: McpServer) {
   // Edit tier
   server.tool(
     "tiers_edit",
-    "Update an existing Ghost membership tier by ID. Returns the updated tier object. Only the fields you provide are changed; omitted fields are left as-is. Use this to adjust pricing, visibility, or benefits once you have the tier's ID, e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\", monthly_price: 700." + UNSUPPORTED_RESOURCE_DESCRIPTION,
+    "Update a membership tier by ID to change pricing, visibility, or benefits; omitted fields are unchanged. Example: id: \"64f1a2b3c4d5e6f7a8b9c0d1\", monthly_price: 700. Returns the updated tier." + UNSUPPORTED_RESOURCE_DESCRIPTION,
     editParams,
     async (args, _extra) => {
       const tier = await ghostApiClient.tiers.edit(args);
@@ -121,7 +121,7 @@ export function registerTierTools(server: McpServer) {
   // Delete tier
   server.tool(
     "tiers_delete",
-    "Permanently delete a Ghost membership tier by ID. Returns a plain-text confirmation message; this action cannot be undone and may affect members currently subscribed to it. Use this only after confirming the correct tier via tiers_browse or tiers_read, e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\"." + DELETE_CONFIRMATION_DESCRIPTION + UNSUPPORTED_RESOURCE_DESCRIPTION,
+    "Permanently delete a membership tier by ID; this may affect subscribers. Verify the tier via tiers_browse or tiers_read, e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\". Returns a text confirmation; deletion cannot be undone." + DELETE_CONFIRMATION_DESCRIPTION + UNSUPPORTED_RESOURCE_DESCRIPTION,
     deleteParams,
     DELETE_ANNOTATIONS,
     async (args, _extra) => {

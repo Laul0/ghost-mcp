@@ -20,7 +20,7 @@ export function registerRoleTools(server: McpServer) {
   // Browse roles
   server.tool(
     "roles_browse",
-    "List available Ghost staff user roles. Returns an array of role objects (e.g. Administrator, Editor, Author, Contributor); this list is fixed by Ghost and cannot be created, edited, or deleted via the API. Use this to look up a role_id before inviting a new staff user with invites_add, e.g. limit: 10." + UNSUPPORTED_RESOURCE_DESCRIPTION,
+    "List Ghost staff roles to find a role_id before inviting a user, e.g. limit: 10. Returns a role array; Ghost's roles are fixed." + UNSUPPORTED_RESOURCE_DESCRIPTION,
     browseParams,
     async (args, _extra) => {
       const roles = await ghostApiClient.roles.browse(args);
@@ -38,7 +38,7 @@ export function registerRoleTools(server: McpServer) {
   // Read role
   server.tool(
     "roles_read",
-    "Retrieve a single Ghost staff user role by ID or name. Returns the full role object, or an error if no role matches. Use this to confirm a role's exact ID before using it with invites_add, e.g. name: \"Editor\"." + UNSUPPORTED_RESOURCE_DESCRIPTION,
+    "Retrieve a staff role by ID or name to confirm its ID for an invitation, e.g. name: \"Editor\". Returns the role or an error." + UNSUPPORTED_RESOURCE_DESCRIPTION,
     readParams,
     async (args, _extra) => {
       const role = await ghostApiClient.roles.read(args);

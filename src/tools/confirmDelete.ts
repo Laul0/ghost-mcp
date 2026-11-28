@@ -2,7 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { RequestId } from "@modelcontextprotocol/sdk/types.js";
 
 export const DELETE_CONFIRMATION_DESCRIPTION =
-  " Requests user confirmation through MCP form elicitation before deleting. Declining, cancelling, or failing the confirmation blocks deletion. If the client cannot show the confirmation, deletion is blocked unless the server operator has enabled unconfirmed deletions.";
+  " Requires MCP form confirmation. Declined, cancelled, or failed prompts block deletion. An operator override permits deletion only when the client cannot confirm.";
 
 export const DELETE_ANNOTATIONS = { destructiveHint: true, readOnlyHint: false };
 
