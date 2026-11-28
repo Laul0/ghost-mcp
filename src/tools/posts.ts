@@ -3,6 +3,7 @@ import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ghostApiClient } from "../ghostApi";
 import { confirmDelete, DELETE_CONFIRMATION_DESCRIPTION, DELETE_ANNOTATIONS } from "./confirmDelete";
+import { BROWSE_PAGINATION_DESCRIPTION } from "./descriptions";
 
 // Parameter schemas as ZodRawShape (object literals)
 const browseParams = {
@@ -79,7 +80,7 @@ export function registerPostTools(server: McpServer) {
   // Browse posts
   server.tool(
     "posts_browse",
-    "List Ghost blog posts with optional filtering, pagination, and ordering. Returns an array of post objects (empty array if none match), each including id, title, status, and url. Use this to search or page through posts before reading, editing, or deleting a specific one, e.g. filter: \"status:published\", limit: 15. Does not return the full post content — use posts_read for the complete html/lexical body.",
+    "List Ghost blog posts with optional filtering, pagination, and ordering. Returns a JSON array of post objects (empty if none match). Use this to find posts before reading, editing, or deleting one, e.g. filter: \"status:published\", order: \"published_at DESC\", limit: 15. The fields returned depend on Ghost; use posts_read to retrieve one post by ID or slug." + BROWSE_PAGINATION_DESCRIPTION,
     browseParams,
     async (args, _extra) => {
       const posts = await ghostApiClient.posts.browse(args);
@@ -97,7 +98,7 @@ export function registerPostTools(server: McpServer) {
   // Read post
   server.tool(
     "posts_read",
-    "Retrieve a single Ghost blog post by ID or slug. Returns the full post object including html/lexical content, or an error if no post matches. Use this once you know the ID or slug (e.g. from posts_browse) and need the complete content, e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\".",
+    "Retrieve one Ghost blog post by ID or slug. Returns a JSON post object with the fields Ghost supplies, or an error if no post matches. Use this to inspect a post and obtain its current updated_at before editing it, e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\".",
     readParams,
     async (args, _extra) => {
       const post = await ghostApiClient.posts.read(args);

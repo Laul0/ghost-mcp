@@ -2,6 +2,7 @@ import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ghostApiClient } from "../ghostApi";
 import { confirmDelete, DELETE_CONFIRMATION_DESCRIPTION, DELETE_ANNOTATIONS } from "./confirmDelete";
+import { BROWSE_PAGINATION_DESCRIPTION } from "./descriptions";
 
 const browseParams = {
   filter: z.string().optional().describe("Ghost NQL filter expression to narrow the list of pages, e.g. \"status:published\"."),
@@ -72,7 +73,7 @@ const deleteParams = {
 export function registerPageTools(server: McpServer) {
   server.tool(
     "pages_browse",
-    "List Ghost static pages with optional filtering, pagination, and ordering. Returns an array of page objects, empty if none match. Use this before reading, editing, or deleting a specific page, e.g. filter: \"status:published\". Pages exclude routes created through dynamic routing.",
+    "List Ghost static pages with optional filtering, pagination, and ordering. Returns a JSON array of page objects, empty if none match. Use this before reading, editing, or deleting a specific page, e.g. filter: \"status:published\". Pages exclude routes created through dynamic routing." + BROWSE_PAGINATION_DESCRIPTION,
     browseParams,
     async (args) => ({
       content: [{ type: "text", text: JSON.stringify(await ghostApiClient.pages.browse(args), null, 2) }],
@@ -81,7 +82,7 @@ export function registerPageTools(server: McpServer) {
 
   server.tool(
     "pages_read",
-    "Retrieve a single Ghost static page by ID or slug. Returns the full page object including html/lexical content, or an error if no page matches. Use this after pages_browse when complete content is needed, e.g. slug: \"about\". Dynamic routes are not pages and cannot be returned.",
+    "Retrieve a single Ghost static page by ID or slug. Returns a JSON page object with the fields Ghost supplies, or an error if no page matches. Use this to inspect a page and obtain its current updated_at before editing it, e.g. slug: \"about\". Dynamic routes are not pages and cannot be returned.",
     readParams,
     async (args) => ({
       content: [{ type: "text", text: JSON.stringify(await ghostApiClient.pages.read(args), null, 2) }],

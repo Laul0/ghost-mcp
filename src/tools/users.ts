@@ -3,6 +3,7 @@ import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ghostApiClient } from "../ghostApi";
 import { confirmDelete, DELETE_CONFIRMATION_DESCRIPTION, DELETE_ANNOTATIONS } from "./confirmDelete";
+import { BROWSE_PAGINATION_DESCRIPTION } from "./descriptions";
 
 // Parameter schemas as ZodRawShape (object literals)
 const browseParams = {
@@ -36,7 +37,7 @@ export function registerUserTools(server: McpServer) {
   // Browse users
   server.tool(
     "users_browse",
-    "List Ghost staff users with optional filtering, pagination, and ordering. Returns an array of user objects (empty array if none match), each including id, name, email, and roles. Use this to find a staff user before reading or editing their profile, e.g. limit: 20.",
+    "List Ghost staff users with optional filtering, pagination, and ordering. Returns an array of user objects (empty array if none match), each including id, name, email, and roles. Use this to find a staff user before reading or editing their profile, e.g. limit: 20." + BROWSE_PAGINATION_DESCRIPTION,
     browseParams,
     async (args, _extra) => {
       const users = await ghostApiClient.users.browse(args);

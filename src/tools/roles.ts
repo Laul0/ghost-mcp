@@ -2,6 +2,7 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ghostApiClient } from "../ghostApi";
+import { UNSUPPORTED_RESOURCE_DESCRIPTION } from "./descriptions";
 
 // Parameter schemas as ZodRawShape (object literals)
 const browseParams = {
@@ -19,7 +20,7 @@ export function registerRoleTools(server: McpServer) {
   // Browse roles
   server.tool(
     "roles_browse",
-    "List available Ghost staff user roles. Returns an array of role objects (e.g. Administrator, Editor, Author, Contributor); this list is fixed by Ghost and cannot be created, edited, or deleted via the API. Use this to look up a role_id before inviting a new staff user with invites_add, e.g. limit: 10.",
+    "List available Ghost staff user roles. Returns an array of role objects (e.g. Administrator, Editor, Author, Contributor); this list is fixed by Ghost and cannot be created, edited, or deleted via the API. Use this to look up a role_id before inviting a new staff user with invites_add, e.g. limit: 10." + UNSUPPORTED_RESOURCE_DESCRIPTION,
     browseParams,
     async (args, _extra) => {
       const roles = await ghostApiClient.roles.browse(args);
@@ -37,7 +38,7 @@ export function registerRoleTools(server: McpServer) {
   // Read role
   server.tool(
     "roles_read",
-    "Retrieve a single Ghost staff user role by ID or name. Returns the full role object, or an error if no role matches. Use this to confirm a role's exact ID before using it with invites_add, e.g. name: \"Editor\".",
+    "Retrieve a single Ghost staff user role by ID or name. Returns the full role object, or an error if no role matches. Use this to confirm a role's exact ID before using it with invites_add, e.g. name: \"Editor\"." + UNSUPPORTED_RESOURCE_DESCRIPTION,
     readParams,
     async (args, _extra) => {
       const role = await ghostApiClient.roles.read(args);

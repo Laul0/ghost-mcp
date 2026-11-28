@@ -3,6 +3,7 @@ import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ghostApiClient } from "../ghostApi";
 import { confirmDelete, DELETE_CONFIRMATION_DESCRIPTION, DELETE_ANNOTATIONS } from "./confirmDelete";
+import { UNSUPPORTED_RESOURCE_DESCRIPTION } from "./descriptions";
 
 // Parameter schemas as ZodRawShape (object literals)
 const browseParams = {
@@ -45,7 +46,7 @@ export function registerOfferTools(server: McpServer) {
   // Browse offers
   server.tool(
     "offers_browse",
-    "List Ghost member discount offers with optional filtering, pagination, and ordering. Returns an array of offer objects (empty array if none match), each including id, name, code, and tier_id. Use this to review existing discounts before creating a new one or editing an offer, e.g. limit: 10.",
+    "List Ghost member discount offers with optional filtering, pagination, and ordering. Returns an array of offer objects (empty array if none match), each including id, name, code, and tier_id. Use this to review existing discounts before creating a new one or editing an offer, e.g. limit: 10." + UNSUPPORTED_RESOURCE_DESCRIPTION,
     browseParams,
     async (args, _extra) => {
       const offers = await ghostApiClient.offers.browse(args);
@@ -63,7 +64,7 @@ export function registerOfferTools(server: McpServer) {
   // Read offer
   server.tool(
     "offers_read",
-    "Retrieve a single Ghost member discount offer by ID or code. Returns the full offer object including pricing and duration, or an error if no offer matches. Use this once you know the ID or redemption code (e.g. from offers_browse) and need full details, e.g. code: \"BF2026\".",
+    "Retrieve a single Ghost member discount offer by ID or code. Returns the full offer object including pricing and duration, or an error if no offer matches. Use this once you know the ID or redemption code (e.g. from offers_browse) and need full details, e.g. code: \"BF2026\"." + UNSUPPORTED_RESOURCE_DESCRIPTION,
     readParams,
     async (args, _extra) => {
       const offer = await ghostApiClient.offers.read(args);
@@ -81,7 +82,7 @@ export function registerOfferTools(server: McpServer) {
   // Add offer
   server.tool(
     "offers_add",
-    "Create a new Ghost member discount offer for a membership tier. Returns the created offer object including its generated ID. All of name, code, cadence, duration, amount, tier_id, and type are required; look up tier_id via tiers_browse first. Cadence, duration, amount, and type cannot be changed after creation — only name, code, and display text are editable later via offers_edit. Use this to launch a promotional discount, e.g. name: \"Black Friday\", code: \"BF2026\", cadence: \"month\", duration: \"once\", amount: 20, type: \"percent\".",
+    "Create a new Ghost member discount offer for a membership tier. Returns the created offer object including its generated ID. All of name, code, cadence, duration, amount, tier_id, and type are required. Cadence, duration, amount, and type cannot be changed after creation — only name, code, and display text are editable later via offers_edit. Example: name: \"Black Friday\", code: \"BF2026\", cadence: \"month\", duration: \"once\", amount: 20, type: \"percent\", tier_id: \"64f1a2b3c4d5e6f7a8b9c0d1\"." + UNSUPPORTED_RESOURCE_DESCRIPTION,
     addParams,
     async (args, _extra) => {
       const offer = await ghostApiClient.offers.add(args);
@@ -99,7 +100,7 @@ export function registerOfferTools(server: McpServer) {
   // Edit offer
   server.tool(
     "offers_edit",
-    "Update an existing Ghost member discount offer by ID. Returns the updated offer object. Only name, code, display_title, and display_description can be changed; cadence, duration, amount, and type are immutable once created. Use this to rename an offer or change its public copy, e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\", display_title: \"Holiday Special\".",
+    "Update an existing Ghost member discount offer by ID. Returns the updated offer object. Only name, code, display_title, and display_description can be changed; cadence, duration, amount, and type are immutable once created. Use this to rename an offer or change its public copy, e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\", display_title: \"Holiday Special\"." + UNSUPPORTED_RESOURCE_DESCRIPTION,
     editParams,
     async (args, _extra) => {
       const offer = await ghostApiClient.offers.edit(args);
@@ -117,7 +118,7 @@ export function registerOfferTools(server: McpServer) {
   // Delete offer
   server.tool(
     "offers_delete",
-    "Permanently delete a Ghost member discount offer by ID. Returns a plain-text confirmation message; this action cannot be undone and the redemption code stops working immediately. Use this only after confirming the correct offer via offers_browse or offers_read, e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\"." + DELETE_CONFIRMATION_DESCRIPTION,
+    "Permanently delete a Ghost member discount offer by ID. Returns a plain-text confirmation message; this action cannot be undone and the redemption code stops working immediately. Use this only after confirming the correct offer via offers_browse or offers_read, e.g. id: \"64f1a2b3c4d5e6f7a8b9c0d1\"." + DELETE_CONFIRMATION_DESCRIPTION + UNSUPPORTED_RESOURCE_DESCRIPTION,
     deleteParams,
     DELETE_ANNOTATIONS,
     async (args, _extra) => {

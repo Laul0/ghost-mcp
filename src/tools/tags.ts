@@ -3,6 +3,7 @@ import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ghostApiClient } from "../ghostApi";
 import { confirmDelete, DELETE_CONFIRMATION_DESCRIPTION, DELETE_ANNOTATIONS } from "./confirmDelete";
+import { BROWSE_PAGINATION_DESCRIPTION } from "./descriptions";
 
 // Parameter schemas as ZodRawShape (object literals)
 const browseParams = {
@@ -36,7 +37,7 @@ export function registerTagTools(server: McpServer) {
   // Browse tags
   server.tool(
     "tags_browse",
-    "List Ghost tags with optional filtering, pagination, and ordering. Returns an array of tag objects (empty array if none match), each including id, name, and slug. Use this to search or page through tags before reading, editing, or deleting a specific one, e.g. limit: 20.",
+    "List Ghost tags with optional filtering, pagination, and ordering. Returns an array of tag objects (empty array if none match), each including id, name, and slug. Use this to search or page through tags before reading, editing, or deleting a specific one, e.g. limit: 20." + BROWSE_PAGINATION_DESCRIPTION,
     browseParams,
     async (args, _extra) => {
       const tags = await ghostApiClient.tags.browse(args);

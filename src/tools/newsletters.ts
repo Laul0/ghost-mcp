@@ -3,6 +3,7 @@ import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ghostApiClient } from "../ghostApi";
 import { confirmDelete, DELETE_CONFIRMATION_DESCRIPTION, DELETE_ANNOTATIONS } from "./confirmDelete";
+import { BROWSE_PAGINATION_DESCRIPTION } from "./descriptions";
 
 // Parameter schemas as ZodRawShape (object literals)
 const browseParams = {
@@ -61,7 +62,7 @@ export function registerNewsletterTools(server: McpServer) {
   // Browse newsletters
   server.tool(
     "newsletters_browse",
-    "List Ghost newsletters with optional filtering, pagination, and ordering. Returns an array of newsletter objects (empty array if none match), each including id, name, and status. Use this to find a newsletter's ID before editing it or subscribing a member to it, e.g. limit: 10.",
+    "List Ghost newsletters with optional filtering, pagination, and ordering. Returns an array of newsletter objects (empty array if none match), each including id, name, and status. Use this to find a newsletter's ID before editing it or subscribing a member to it, e.g. limit: 10." + BROWSE_PAGINATION_DESCRIPTION,
     browseParams,
     async (args, _extra) => {
       const newsletters = await ghostApiClient.newsletters.browse(args);
