@@ -41,32 +41,55 @@ describe("delete confirmation", () => {
     afterEach(() => vi.unstubAllEnvs());
 
     it.each(tools)("requires confirmation before %s deletion", async (name, entity, register) => {
-        const confirm = vi.fn(async (_request: ElicitRequest) => ({ action: "accept" as const, content: { confirm: true } }));
+        let releaseConfirmation!: (result: ElicitResult) => void;
+        let promptReceived!: () => void;
+        const prompt = new Promise<void>(resolve => { promptReceived = resolve; });
+        const confirmation = new Promise<ElicitResult>(resolve => { releaseConfirmation = resolve; });
+        const confirm = vi.fn((_request: ElicitRequest) => {
+            promptReceived();
+            return confirmation;
+        });
         const { client, server } = await createConnectedClient(register, confirm);
         const { tools: discovered } = await client.listTools();
         expect(discovered.find(tool => tool.name === `${name}_delete`)?.annotations?.destructiveHint).toBe(true);
-        const result = await client.callTool({ name: `${name}_delete`, arguments: { id: "target-1" } });
+        const deletion = client.callTool({ name: `${name}_delete`, arguments: { id: "target-1" } });
+
+        await prompt;
+        expect(mocks[name].delete).not.toHaveBeenCalled();
+        releaseConfirmation({ action: "accept", content: { confirm: true } });
+        const result = await deletion;
 
         expect(result.isError).toBeFalsy();
         expect(confirm).toHaveBeenCalledOnce();
         expect(confirm.mock.calls[0][0].params.message).toContain(`${entity} with ID "target-1"`);
-        expect(mocks[name].delete).toHaveBeenCalledWith({ id: "target-1" });
+        expect(mocks[name].delete).toHaveBeenCalledExactlyOnceWith({ id: "target-1" });
         await client.close();
         await server.close();
     });
 
-    it.each([
-        { action: "decline" },
-        { action: "cancel" },
-        { action: "accept", content: { confirm: false } },
-        { action: "accept" },
-    ] as ElicitResult[])("blocks deletion when confirmation is not granted: %j", async response => {
-        const { client, server } = await createConnectedClient(registerPostTools, async () => response);
-        const result = await client.callTool({ name: "posts_delete", arguments: { id: "target-1" } });
-        expect(result.isError).toBe(true);
-        expect(mocks.posts.delete).not.toHaveBeenCalled();
-        await client.close();
-        await server.close();
+    describe.each(tools)("%s deletion", (name, _entity, register) => {
+        it.each([
+            { action: "decline" },
+            { action: "cancel" },
+            { action: "accept", content: { confirm: false } },
+            { action: "accept" },
+        ] as ElicitResult[])("blocks deletion when confirmation is not granted: %j", async response => {
+            const { client, server } = await createConnectedClient(register, async () => response);
+            const result = await client.callTool({ name: `${name}_delete`, arguments: { id: "target-1" } });
+            expect(result.isError).toBe(true);
+            expect(mocks[name].delete).not.toHaveBeenCalled();
+            await client.close();
+            await server.close();
+        });
+
+        it("blocks deletion when the client cannot confirm", async () => {
+            const { client, server } = await createConnectedClient(register);
+            const result = await client.callTool({ name: `${name}_delete`, arguments: { id: "target-1" } });
+            expect(result.isError).toBe(true);
+            expect(mocks[name].delete).not.toHaveBeenCalled();
+            await client.close();
+            await server.close();
+        });
     });
 
     it("blocks unsupported clients and ignores model-supplied force", async () => {
